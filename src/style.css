@@ -1,0 +1,261 @@
+@import 'tailwindcss';
+
+/* GitHub-like (Primer-inspired) theme tokens. Light by default, dark via
+   prefers-color-scheme — same behavior as github.com's auto mode. */
+:root {
+  --cnp-canvas: #ffffff;
+  --cnp-canvas-subtle: #f6f8fa;
+  --cnp-canvas-inset: #f6f8fa;
+  --cnp-border: #d1d9e0;
+  --cnp-border-muted: #d1d9e0b3;
+  --cnp-fg: #1f2328;
+  --cnp-fg-muted: #59636e;
+  --cnp-accent: #0969da;
+  --cnp-accent-emphasis: #0969da;
+  --cnp-success: #1a7f37;
+  --cnp-success-emphasis: #1f883d;
+  --cnp-danger: #cf222e;
+  --cnp-done: #8250df;
+  --cnp-attention: #9a6700;
+  --cnp-neutral-muted: #818b981f;
+  --cnp-diff-add-bg: #dafbe1;
+  --cnp-diff-add-line: #aceebb;
+  --cnp-diff-del-bg: #ffebe9;
+  --cnp-diff-del-line: #ffcecb;
+  --cnp-btn-primary-bg: #1f883d;
+  --cnp-btn-primary-fg: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cnp-canvas: #0d1117;
+    --cnp-canvas-subtle: #151b23;
+    --cnp-canvas-inset: #010409;
+    --cnp-border: #3d444d;
+    --cnp-border-muted: #3d444db3;
+    --cnp-fg: #f0f6fc;
+    --cnp-fg-muted: #9198a1;
+    --cnp-accent: #4493f8;
+    --cnp-accent-emphasis: #1f6feb;
+    --cnp-success: #3fb950;
+    --cnp-success-emphasis: #238636;
+    --cnp-danger: #f85149;
+    --cnp-done: #ab7df8;
+    --cnp-attention: #d29922;
+    --cnp-neutral-muted: #656c7633;
+    --cnp-diff-add-bg: #2ea04326;
+    --cnp-diff-add-line: #3fb95066;
+    --cnp-diff-del-bg: #f8514926;
+    --cnp-diff-del-line: #f8514966;
+    --cnp-btn-primary-bg: #238636;
+    --cnp-btn-primary-fg: #ffffff;
+  }
+}
+
+@theme {
+  --color-canvas: var(--cnp-canvas);
+  --color-canvas-subtle: var(--cnp-canvas-subtle);
+  --color-canvas-inset: var(--cnp-canvas-inset);
+  --color-border-default: var(--cnp-border);
+  --color-border-muted: var(--cnp-border-muted);
+  --color-fg-default: var(--cnp-fg);
+  --color-fg-muted: var(--cnp-fg-muted);
+  --color-accent: var(--cnp-accent);
+  --color-accent-emphasis: var(--cnp-accent-emphasis);
+  --color-success: var(--cnp-success);
+  --color-success-emphasis: var(--cnp-success-emphasis);
+  --color-danger: var(--cnp-danger);
+  --color-done: var(--cnp-done);
+  --color-attention: var(--cnp-attention);
+  --color-neutral-muted: var(--cnp-neutral-muted);
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+body {
+  background: var(--cnp-canvas);
+  color: var(--cnp-fg);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+/* Rendered markdown (README, issue/patch bodies) — GitHub-flavored look. */
+.markdown-body {
+  font-size: 16px;
+  line-height: 1.6;
+  word-wrap: break-word;
+}
+.markdown-body > *:first-child {
+  margin-top: 0;
+}
+.markdown-body h1,
+.markdown-body h2 {
+  font-weight: 600;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--cnp-border-muted);
+  margin: 24px 0 16px;
+}
+.markdown-body h1 {
+  font-size: 2em;
+}
+.markdown-body h2 {
+  font-size: 1.5em;
+}
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  font-weight: 600;
+  margin: 24px 0 16px;
+}
+.markdown-body h3 {
+  font-size: 1.25em;
+}
+.markdown-body p,
+.markdown-body ul,
+.markdown-body ol,
+.markdown-body table,
+.markdown-body blockquote {
+  margin: 0 0 16px;
+}
+.markdown-body ul,
+.markdown-body ol {
+  padding-left: 2em;
+}
+.markdown-body ul {
+  list-style: disc;
+}
+.markdown-body ol {
+  list-style: decimal;
+}
+.markdown-body li + li {
+  margin-top: 0.25em;
+}
+.markdown-body a {
+  color: var(--cnp-accent);
+  text-decoration: none;
+}
+.markdown-body a:hover {
+  text-decoration: underline;
+}
+.markdown-body code {
+  background: var(--cnp-neutral-muted);
+  padding: 0.2em 0.4em;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 85%;
+}
+.markdown-body pre {
+  background: var(--cnp-canvas-subtle);
+  border-radius: 6px;
+  padding: 16px;
+  overflow-x: auto;
+  margin: 0 0 16px;
+}
+.markdown-body pre code {
+  background: transparent;
+  padding: 0;
+  font-size: 85%;
+  line-height: 1.45;
+}
+.markdown-body blockquote {
+  border-left: 0.25em solid var(--cnp-border);
+  color: var(--cnp-fg-muted);
+  padding: 0 1em;
+}
+.markdown-body table {
+  border-collapse: collapse;
+  display: block;
+  overflow-x: auto;
+}
+.markdown-body table th,
+.markdown-body table td {
+  border: 1px solid var(--cnp-border);
+  padding: 6px 13px;
+}
+.markdown-body table th {
+  font-weight: 600;
+}
+.markdown-body table tr:nth-child(2n) {
+  background: var(--cnp-canvas-subtle);
+}
+.markdown-body img {
+  max-width: 100%;
+}
+.markdown-body hr {
+  border: 0;
+  border-top: 1px solid var(--cnp-border);
+  margin: 24px 0;
+}
+
+/* highlight.js — minimal GitHub-ish syntax colors, both themes. */
+.hljs-comment,
+.hljs-quote {
+  color: var(--cnp-fg-muted);
+}
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-type {
+  color: #cf222e;
+}
+.hljs-string,
+.hljs-regexp,
+.hljs-addition {
+  color: #0a3069;
+}
+.hljs-number,
+.hljs-literal,
+.hljs-attr,
+.hljs-variable,
+.hljs-template-variable {
+  color: #0550ae;
+}
+.hljs-title,
+.hljs-name,
+.hljs-section,
+.hljs-built_in {
+  color: #8250df;
+}
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link,
+.hljs-meta {
+  color: #953800;
+}
+@media (prefers-color-scheme: dark) {
+  .hljs-keyword,
+  .hljs-selector-tag,
+  .hljs-type {
+    color: #ff7b72;
+  }
+  .hljs-string,
+  .hljs-regexp,
+  .hljs-addition {
+    color: #a5d6ff;
+  }
+  .hljs-number,
+  .hljs-literal,
+  .hljs-attr,
+  .hljs-variable,
+  .hljs-template-variable {
+    color: #79c0ff;
+  }
+  .hljs-title,
+  .hljs-name,
+  .hljs-section,
+  .hljs-built_in {
+    color: #d2a8ff;
+  }
+  .hljs-symbol,
+  .hljs-bullet,
+  .hljs-link,
+  .hljs-meta {
+    color: #ffa657;
+  }
+}
