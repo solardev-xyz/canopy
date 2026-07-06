@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import { hasProvider, radicleRequest, USER_REJECTED } from '../lib/provider.js';
 
 /**
@@ -11,11 +11,8 @@ export const useRadicleStore = defineStore('radicle', () => {
   const available = ref(hasProvider());
   const connected = ref(false);
   const capabilities = ref(null);
-  const identity = ref(null);
   const seededRids = ref(new Set());
   const busy = ref(false);
-
-  const canUseNode = computed(() => connected.value && capabilities.value?.canUseNode === true);
 
   async function init() {
     // The provider is injected around DOMContentLoaded; a module-script SPA
@@ -92,35 +89,16 @@ export const useRadicleStore = defineStore('radicle', () => {
     }
   }
 
-  async function sync(rid) {
-    busy.value = true;
-    try {
-      await radicleRequest('radicle_sync', { rid });
-    } finally {
-      busy.value = false;
-    }
-  }
-
-  async function loadIdentity() {
-    if (identity.value) return identity.value;
-    identity.value = await radicleRequest('radicle_getIdentity');
-    return identity.value;
-  }
-
   return {
     available,
     connected,
     capabilities,
-    identity,
     busy,
-    canUseNode,
     init,
     connect,
     refreshSeeded,
     isSeeded,
     seed,
     unseed,
-    sync,
-    loadIdentity,
   };
 });

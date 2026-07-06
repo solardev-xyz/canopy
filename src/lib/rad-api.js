@@ -27,10 +27,17 @@ export function configureRadApi({ base = null, mode = null } = {}) {
 /** Detect once whether rad:// URLs are fetchable (Freedom Browser). */
 async function detectMode() {
   if (state.mode) return state.mode;
+  // Freedom Browser advertises itself on the injected provider; the rad:
+  // scheme handler is injected alongside it, so the flag is authoritative.
+  if (typeof window !== 'undefined' && window.radicle?.isFreedomBrowser === true) {
+    state.mode = 'rad';
+    return state.mode;
+  }
   try {
-    // An invalid RID still *resolves* (HTTP 400) when the rad: scheme is
-    // handled; in a plain browser fetch() rejects with TypeError before
-    // any request is made.
+    // Fallback probe for rad:-capable hosts without the provider: an
+    // invalid RID still *resolves* (HTTP 400) when the scheme is handled;
+    // in a plain browser fetch() rejects with TypeError before any
+    // request is made.
     await fetch('rad:invalid-probe');
     state.mode = 'rad';
   } catch {
