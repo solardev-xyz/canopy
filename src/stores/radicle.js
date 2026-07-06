@@ -18,6 +18,11 @@ export const useRadicleStore = defineStore('radicle', () => {
   const canUseNode = computed(() => connected.value && capabilities.value?.canUseNode === true);
 
   async function init() {
+    // The provider is injected around DOMContentLoaded; a module-script SPA
+    // mounts earlier. Poll briefly instead of deciding on first look.
+    for (let i = 0; i < 20 && !hasProvider(); i++) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
     available.value = hasProvider();
     if (!available.value) return;
     try {
