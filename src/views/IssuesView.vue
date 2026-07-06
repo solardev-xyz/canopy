@@ -4,17 +4,21 @@ import { useIssues } from '../lib/queries.js';
 import { formatTimestamp, shortDid } from '../lib/rad-api.js';
 import LoadingBar from '../components/LoadingBar.vue';
 import ErrorBox from '../components/ErrorBox.vue';
+import NewIssueForm from '../components/NewIssueForm.vue';
+import { useRadicleStore } from '../stores/radicle.js';
 
 const props = defineProps({ repo: { type: Object, required: true } });
 const rid = computed(() => props.repo.rid);
 const state = ref('open');
+const showNewIssue = ref(false);
+const radicle = useRadicleStore();
 
 const { data: issues, isPending, error } = useIssues(rid, state);
 </script>
 
 <template>
   <div>
-    <div class="flex gap-4 mb-3 text-sm">
+    <div class="flex gap-4 mb-3 text-sm items-center">
       <button
         v-for="s in ['open', 'closed']"
         :key="s"
@@ -27,7 +31,16 @@ const { data: issues, isPending, error } = useIssues(rid, state);
         <span aria-hidden="true">{{ s === 'open' ? '⊙' : '⊘' }}</span>
         {{ s }}
       </button>
+      <button
+        v-if="radicle.available && radicle.connected && !showNewIssue"
+        @click="showNewIssue = true"
+        class="ml-auto px-3 py-1.5 rounded-md font-medium text-white bg-[var(--cnp-btn-primary-bg)] hover:opacity-90 cursor-pointer"
+      >
+        New issue
+      </button>
     </div>
+
+    <NewIssueForm v-if="showNewIssue" :rid="rid" @close="showNewIssue = false" />
 
     <LoadingBar v-if="isPending" />
     <ErrorBox v-else-if="error" title="Could not load issues" :error="error" />

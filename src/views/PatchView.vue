@@ -8,7 +8,9 @@ import ErrorBox from '../components/ErrorBox.vue';
 import StateBadge from '../components/StateBadge.vue';
 import MarkdownBody from '../components/MarkdownBody.vue';
 import CommentCard from '../components/CommentCard.vue';
+import CommentForm from '../components/CommentForm.vue';
 import AuthorChip from '../components/AuthorChip.vue';
+import { usePatchActions } from '../lib/actions.js';
 
 const props = defineProps({ repo: { type: Object, required: true } });
 const route = useRoute();
@@ -21,6 +23,11 @@ const { data: patch, isPending, error } = usePatch(rid, id);
 const revisions = computed(() => patch.value?.revisions ?? []);
 
 const verdictLabel = { accept: 'approved', reject: 'requested changes' };
+
+const actions = usePatchActions(props.repo.rid);
+// Comments land on the latest revision, like commenting on a PR's HEAD.
+const comment = (body) =>
+  actions.commentPatch(id.value, body, revisions.value.at(-1)?.id);
 </script>
 
 <template>
@@ -93,6 +100,10 @@ const verdictLabel = { accept: 'approved', reject: 'requested changes' };
       <div v-if="patch.merges?.length" class="mt-6 text-sm text-done font-medium">
         ✓ Merged by
         {{ patch.merges.map((m) => m.author?.alias ?? shortDid(m.author?.id)).join(', ') }}
+      </div>
+
+      <div class="mt-6">
+        <CommentForm :on-submit="comment" placeholder="Comment on the latest revision" />
       </div>
     </template>
   </div>

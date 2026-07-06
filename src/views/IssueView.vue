@@ -7,6 +7,10 @@ import LoadingBar from '../components/LoadingBar.vue';
 import ErrorBox from '../components/ErrorBox.vue';
 import StateBadge from '../components/StateBadge.vue';
 import CommentCard from '../components/CommentCard.vue';
+import CommentForm from '../components/CommentForm.vue';
+import { useIssueActions } from '../lib/actions.js';
+import { useRadicleStore } from '../stores/radicle.js';
+import { USER_REJECTED } from '../lib/provider.js';
 
 const props = defineProps({ repo: { type: Object, required: true } });
 const route = useRoute();
@@ -14,6 +18,17 @@ const rid = computed(() => props.repo.rid);
 const id = computed(() => route.params.id);
 
 const { data: issue, isPending, error } = useIssue(rid, id);
+const radicle = useRadicleStore();
+const actions = useIssueActions(props.repo.rid);
+
+const comment = (body) => actions.commentIssue(id.value, body);
+async function setState(state) {
+  try {
+    await actions.setIssueState(id.value, state);
+  } catch (err) {
+    if (err.code !== USER_REJECTED) throw err;
+  }
+}
 </script>
 
 <template>
@@ -47,6 +62,28 @@ const { data: issue, isPending, error } = useIssue(rid, id);
 
       <div class="space-y-4">
         <CommentCard v-for="c in issue.discussion" :key="c.id" :comment="c" />
+
+        <CommentForm :on-submit="comment" />
+
+        <div
+          v-if="radicle.available && radicle.connected"
+          class="flex justify-end gap-2 text-sm"
+        >
+          <button
+            v-if="issue.state.status === 'open'"
+            @click="setState('closed')"
+            class="px-3 py-1.5 rounded-md border border-border-default hover:bg-canvas-subtle cursor-pointer"
+          >
+            ⊘ Close issue
+          </button>
+          <button
+            v-else
+            @click="setState('open')"
+            class="px-3 py-1.5 rounded-md border border-border-default hover:bg-canvas-subtle cursor-pointer"
+          >
+            ⊙ Reopen issue
+          </button>
+        </div>
       </div>
     </template>
   </div>

@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { normalizeRid } from './lib/rad-api.js';
+import ConnectButton from './components/ConnectButton.vue';
 
 const router = useRouter();
 const search = ref('');
@@ -41,9 +42,10 @@ function go() {
           ]"
         />
       </div>
-      <span class="text-xs text-fg-muted hidden sm:block">
+      <span class="text-xs text-fg-muted hidden sm:block mr-auto">
         a forge on the Radicle network — served by your own node
       </span>
+      <ConnectButton />
     </header>
     <main class="flex-1">
       <RouterView />
