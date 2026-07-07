@@ -45,9 +45,14 @@ let bzzMode = null; // 'bzz' | 'proxy' | 'unavailable'
 
 async function detectBzz() {
   if (bzzMode) return bzzMode;
+  // Served from a bzz:// origin (desktop Freedom, iOS Freedom): the
+  // runtime has a real scheme handler, so absolute bzz:// fetches work.
+  // This is the clean discriminator — swarmit uses the same one. The
+  // provider flag covers desktop when canopy is served over http (dev).
   if (
     typeof window !== "undefined" &&
-    window.radicle?.isFreedomBrowser === true
+    (window.location?.protocol === "bzz:" ||
+      window.radicle?.isFreedomBrowser === true)
   ) {
     bzzMode = "bzz";
   } else {
