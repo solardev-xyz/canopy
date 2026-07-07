@@ -2,13 +2,15 @@
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { normalizeRid, formatTimestamp } from "../lib/rad-api.js";
-import { searchRepos, searchUsers } from "../lib/index-api.js";
+import { matchRepo, searchUsers } from "../lib/index-api.js";
 import { shortDid } from "../lib/rad-api.js";
 import { hueFromId } from "../lib/identicon.js";
 import { useNetworkIndex } from "../lib/index-queries.js";
+import { usePagedList } from "../lib/paging.js";
 import { useRecentsStore } from "../stores/recents.js";
 import IndexFeedSettings from "../components/IndexFeedSettings.vue";
 import LoadingBar from "../components/LoadingBar.vue";
+import PagerBar from "../components/PagerBar.vue";
 
 const router = useRouter();
 const recents = useRecentsStore();
@@ -18,14 +20,14 @@ const showFeedSettings = ref(false);
 
 const { data: index, isPending: indexPending } = useNetworkIndex();
 
-const query = ref("");
-const results = computed(() => {
-  if (!index.value?.available) return [];
-  return searchRepos(index.value.repos, query.value).slice(0, 50);
-});
+const repoList = usePagedList(
+  computed(() => index.value?.repos ?? []),
+  { pageSize: 24, match: matchRepo },
+);
+// People chips share the directory's filter query.
 const userResults = computed(() => {
   if (!index.value?.available) return [];
-  return searchUsers(index.value.users, query.value).slice(0, 12);
+  return searchUsers(index.value.users, repoList.query.value).slice(0, 12);
 });
 const totals = computed(() => {
   const manifests = index.value?.manifests ?? [];
@@ -124,11 +126,11 @@ function go() {
         @close="showFeedSettings = false"
       />
 
-      <input
-        v-model="query"
-        type="text"
+      <PagerBar
+        :list="repoList"
         placeholder="Search repositories…"
-        class="w-full px-4 py-2 mb-4 rounded-md border border-border-default bg-canvas text-sm focus:outline-none focus:ring-2 focus:ring-accent-emphasis/40"
+        noun="repositories"
+        always
       />
 
       <!-- people matches -->
@@ -160,7 +162,7 @@ function go() {
 
       <div class="grid sm:grid-cols-2 gap-3">
         <button
-          v-for="repo in results"
+          v-for="repo in repoList.items.value"
           :key="repo.rid"
           @click="open(repo.rid)"
           class="text-left border border-border-default rounded-md p-4 hover:border-fg-muted cursor-pointer"
@@ -179,8 +181,11 @@ function go() {
           </div>
         </button>
       </div>
-      <p v-if="query && !results.length" class="text-center text-fg-muted py-8">
-        No indexed repositories match "{{ query }}".
+      <p
+        v-if="repoList.query.value && !repoList.total.value"
+        class="text-center text-fg-muted py-8"
+      >
+        No indexed repositories match "{{ repoList.query.value }}".
       </p>
     </div>
 

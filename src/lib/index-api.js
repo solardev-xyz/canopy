@@ -148,25 +148,19 @@ export async function loadIndexes(feedRefs = getIndexFeeds()) {
   };
 }
 
+/** Per-item matchers (q is lowercased, non-empty) — usable with usePagedList. */
+const matchUser = (user, q) =>
+  (user.alias ?? "").toLowerCase().includes(q) ||
+  user.did.toLowerCase().includes(q);
+
+export const matchRepo = (repo, q) =>
+  (repo.name ?? "").toLowerCase().includes(q) ||
+  (repo.description ?? "").toLowerCase().includes(q) ||
+  repo.rid.toLowerCase().includes(q);
+
 /** Case-insensitive user search over alias and DID. */
 export function searchUsers(users, query) {
   const q = query.trim().toLowerCase();
   if (!q) return [];
-  return users.filter(
-    (user) =>
-      (user.alias ?? "").toLowerCase().includes(q) ||
-      user.did.toLowerCase().includes(q),
-  );
-}
-
-/** Case-insensitive substring search over name/description/rid. */
-export function searchRepos(repos, query) {
-  const q = query.trim().toLowerCase();
-  if (!q) return repos;
-  return repos.filter(
-    (repo) =>
-      repo.name.toLowerCase().includes(q) ||
-      repo.description.toLowerCase().includes(q) ||
-      repo.rid.toLowerCase().includes(q),
-  );
+  return users.filter((user) => matchUser(user, q));
 }

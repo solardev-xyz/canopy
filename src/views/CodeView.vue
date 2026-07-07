@@ -2,12 +2,19 @@
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 import { useTree, useReadme } from "../lib/queries.js";
+import { useIndexLookups } from "../lib/index-queries.js";
 import LoadingBar from "../components/LoadingBar.vue";
 import ErrorBox from "../components/ErrorBox.vue";
 import MarkdownBody from "../components/MarkdownBody.vue";
+import AuthorChip from "../components/AuthorChip.vue";
 
 const props = defineProps({ repo: { type: Object, required: true } });
 const route = useRoute();
+
+// httpd returns delegates as bare DIDs; resolve display names from the
+// network index (aliases are public, gossiped data).
+const { usersByDid } = useIndexLookups();
+const delegateAlias = (did) => usersByDid.value.get(did)?.alias ?? null;
 
 const rid = computed(() => props.repo.rid);
 const head = computed(() => props.repo.head);
@@ -208,16 +215,15 @@ function entryRoute(entry) {
           <dt class="text-fg-muted text-xs uppercase tracking-wide mb-1">
             Delegates ({{ repo.threshold }}-of-{{ repo.delegates.length }})
           </dt>
-          <dd class="space-y-1">
-            <RouterLink
+          <dd class="space-y-1.5">
+            <div
               v-for="d in repo.delegates"
               :key="d"
-              :to="{ name: 'user', params: { did: d } }"
-              class="font-mono text-xs truncate block hover:text-accent hover:underline"
               :title="d"
+              class="text-sm"
             >
-              {{ d.replace("did:key:", "") }}
-            </RouterLink>
+              <AuthorChip :author="{ id: d, alias: delegateAlias(d) }" />
+            </div>
           </dd>
         </div>
       </dl>

@@ -18,6 +18,11 @@ export const router = createRouter({
       props: true,
     },
     {
+      path: "/seeded",
+      name: "seeded",
+      component: () => import("./views/SeededView.vue"),
+    },
+    {
       path: "/:rid(rad:[a-zA-Z0-9]+)",
       component: () => import("./views/RepoLayout.vue"),
       props: true,

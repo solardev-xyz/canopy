@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { hasProvider, radicleRequest, USER_REJECTED } from "../lib/provider.js";
-import { invalidateRepoQueries } from "../lib/query-client.js";
+import { invalidateRepoQueries, queryClient } from "../lib/query-client.js";
 
 /** How often to poll radicle_getSeedStatus while a fetch is in flight. */
 const SEED_POLL_MS = 2000;
@@ -19,6 +19,7 @@ export const useRadicleStore = defineStore("radicle", () => {
   const capabilities = ref(null);
   const alias = ref(null);
   const seededRids = ref(new Set());
+  const did = ref(null);
   const busy = ref(false);
   const seedProgress = ref({});
 
@@ -59,6 +60,23 @@ export const useRadicleStore = defineStore("radicle", () => {
     }
   }
 
+  /** Relinquish this origin's grant entirely (connection + signing). */
+  async function disconnect() {
+    try {
+      await radicleRequest("radicle_disconnect");
+    } finally {
+      // Whatever the provider said, this session is over locally.
+      connected.value = false;
+      capabilities.value = null;
+      alias.value = null;
+      did.value = null;
+      seededRids.value = new Set();
+      pollers.forEach((timer) => clearTimeout(timer));
+      pollers.clear();
+      seedProgress.value = {};
+    }
+  }
+
   async function refreshSeeded() {
     if (!connected.value) return;
     try {
@@ -75,6 +93,10 @@ export const useRadicleStore = defineStore("radicle", () => {
     try {
       const status = await radicleRequest("radicle_getNodeStatus");
       alias.value = status.alias ?? null;
+      // The exact identity arrives once the origin holds the signing
+      // grant (nid = did:key without the prefix); until then consumers
+      // fall back to resolving the alias via the public index.
+      if (status.nid) did.value = `did:key:${status.nid}`;
     } catch {
       // node down — keep whatever we had
     }
@@ -104,7 +126,7 @@ export const useRadicleStore = defineStore("radicle", () => {
       const status = await fetchSeedStatus(rid);
       if (!status) return stopTracking(rid);
       seedProgress.value[rid] = status;
-      if (status.state === "fetched") invalidateRepoQueries(rid);
+      if (status.state === "fetched") landed(rid);
       if (status.state === "fetching" && pollers.has(rid)) {
         pollers.set(rid, setTimeout(tick, SEED_POLL_MS));
       } else {
@@ -119,12 +141,18 @@ export const useRadicleStore = defineStore("radicle", () => {
     pollers.delete(rid);
   }
 
+  /** A repo arrived on the node — refresh everything that lists it. */
+  function landed(rid) {
+    invalidateRepoQueries(rid);
+    queryClient.invalidateQueries({ queryKey: ["seeded-repos"] });
+  }
+
   /** Record a fresh action status and follow the fetch to its outcome. */
   function beginTracking(rid, status) {
     if (!status) return;
     seedProgress.value[rid] = status;
     if (status.state === "fetching") trackFetch(rid);
-    else if (status.state === "fetched") invalidateRepoQueries(rid);
+    else if (status.state === "fetched") landed(rid);
   }
 
   /**
@@ -170,6 +198,7 @@ export const useRadicleStore = defineStore("radicle", () => {
       seededRids.value = next;
       stopTracking(rid);
       delete seedProgress.value[rid];
+      queryClient.invalidateQueries({ queryKey: ["seeded-repos"] });
       return true;
     } finally {
       busy.value = false;
@@ -182,9 +211,11 @@ export const useRadicleStore = defineStore("radicle", () => {
     capabilities,
     alias,
     busy,
+    did,
     seedProgress,
     init,
     connect,
+    disconnect,
     refreshSeeded,
     isSeeded,
     seed,

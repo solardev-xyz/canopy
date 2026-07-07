@@ -1,6 +1,6 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import {
-  searchRepos,
+  matchRepo,
   searchUsers,
   isSwarmRef,
   loadIndexes,
@@ -30,17 +30,16 @@ describe("isSwarmRef", () => {
   });
 });
 
-describe("searchRepos", () => {
+describe("matchRepo", () => {
   const repos = [
     repo("rad:za", "heartwood", { description: "Radicle protocol" }),
     repo("rad:zb", "canopy", { description: "forge UI" }),
   ];
-  test("matches name, description, and rid, case-insensitively", () => {
-    expect(searchRepos(repos, "HEART")).toHaveLength(1);
-    expect(searchRepos(repos, "forge")[0].name).toBe("canopy");
-    expect(searchRepos(repos, "rad:zb")[0].name).toBe("canopy");
-    expect(searchRepos(repos, "  ")).toHaveLength(2);
-    expect(searchRepos(repos, "nope")).toHaveLength(0);
+  test("matches name, description, and rid (query arrives lowercased)", () => {
+    expect(repos.filter((r) => matchRepo(r, "heart"))).toHaveLength(1);
+    expect(repos.filter((r) => matchRepo(r, "forge"))[0].name).toBe("canopy");
+    expect(repos.filter((r) => matchRepo(r, "rad:zb"))[0].name).toBe("canopy");
+    expect(repos.filter((r) => matchRepo(r, "nope"))).toHaveLength(0);
   });
 });
 

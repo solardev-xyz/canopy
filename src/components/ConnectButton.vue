@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted } from "vue";
 import { useRadicleStore } from "../stores/radicle.js";
+import AccountMenu from "./AccountMenu.vue";
 
 const radicle = useRadicleStore();
 onMounted(() => radicle.init());
@@ -15,13 +16,6 @@ onMounted(() => radicle.init());
     >
       Connect node
     </button>
-    <span
-      v-else
-      class="inline-flex items-center gap-1.5 text-sm text-fg-muted"
-      title="Connected to your Radicle node"
-    >
-      <span class="w-2 h-2 rounded-full bg-success inline-block" />
-      {{ radicle.alias ? `connected as ${radicle.alias}` : "node connected" }}
-    </span>
+    <AccountMenu v-else />
   </div>
 </template>
