@@ -21,7 +21,7 @@ onMounted(() => radicle.init());
       title="Connected to your Radicle node"
     >
       <span class="w-2 h-2 rounded-full bg-success inline-block" />
-      node connected
+      {{ radicle.alias ? `connected as ${radicle.alias}` : 'node connected' }}
     </span>
   </div>
 </template>

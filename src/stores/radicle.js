@@ -11,6 +11,7 @@ export const useRadicleStore = defineStore('radicle', () => {
   const available = ref(hasProvider());
   const connected = ref(false);
   const capabilities = ref(null);
+  const alias = ref(null);
   const seededRids = ref(new Set());
   const busy = ref(false);
 
@@ -27,7 +28,7 @@ export const useRadicleStore = defineStore('radicle', () => {
       // 'not-connected' means never granted; anything else implies a grant.
       if (capabilities.value.reason !== 'not-connected') {
         connected.value = true;
-        await refreshSeeded();
+        await Promise.all([refreshSeeded(), refreshAlias()]);
       }
     } catch {
       // Provider present but unresponsive — stay read-only.
@@ -40,7 +41,7 @@ export const useRadicleStore = defineStore('radicle', () => {
       const result = await radicleRequest('radicle_requestAccess');
       connected.value = result.connected === true;
       capabilities.value = result.capabilities ?? capabilities.value;
-      await refreshSeeded();
+      await Promise.all([refreshSeeded(), refreshAlias()]);
       return connected.value;
     } catch (err) {
       if (err.code === USER_REJECTED) return false;
@@ -55,6 +56,17 @@ export const useRadicleStore = defineStore('radicle', () => {
       seededRids.value = new Set(repos.map((r) => r.rid));
     } catch {
       // node down — leave the last known set
+    }
+  }
+
+  // The alias is the public label the user's node gossips to the network;
+  // getNodeStatus exposes it at the connection tier.
+  async function refreshAlias() {
+    try {
+      const status = await radicleRequest('radicle_getNodeStatus');
+      alias.value = status.alias ?? null;
+    } catch {
+      // node down — keep whatever we had
     }
   }
 
@@ -93,6 +105,7 @@ export const useRadicleStore = defineStore('radicle', () => {
     available,
     connected,
     capabilities,
+    alias,
     busy,
     init,
     connect,
