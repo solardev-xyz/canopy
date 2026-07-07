@@ -21,7 +21,7 @@ const files = computed(() => data.value?.diff?.files ?? []);
 
 <template>
   <div>
-    <LoadingBar v-if="isPending" />
+    <LoadingBar v-if="isPending" variant="detail" />
     <ErrorBox v-else-if="error" title="Could not load commit" :error="error" />
     <template v-else-if="data">
       <div class="border border-border-default rounded-md p-4 mb-4">

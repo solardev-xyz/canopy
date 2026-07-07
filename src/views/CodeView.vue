@@ -111,7 +111,7 @@ function entryRoute(entry) {
         </div>
       </div>
 
-      <LoadingBar v-if="isPending" />
+      <LoadingBar v-if="isPending" variant="list" :count="10" />
       <ErrorBox
         v-else-if="error"
         title="Could not load directory"

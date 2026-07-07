@@ -75,6 +75,27 @@
     ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 }
 
+/* Loading skeletons — shimmer sweep over theme-aware placeholder blocks. */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--cnp-canvas-subtle) 25%,
+    var(--cnp-neutral-muted) 50%,
+    var(--cnp-canvas-subtle) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px;
+}
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 body {
   background: var(--cnp-canvas);
   color: var(--cnp-fg);
@@ -88,7 +109,28 @@ a {
 }
 
 /* Rendered markdown (README, issue/patch bodies) — GitHub-flavored look. */
-.markdown-body {
+.markdown-/* Loading skeletons — shimmer sweep over theme-aware placeholder blocks. */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--cnp-canvas-subtle) 25%,
+    var(--cnp-neutral-muted) 50%,
+    var(--cnp-canvas-subtle) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px;
+}
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+body {
   font-size: 16px;
   line-height: 1.6;
   word-wrap: break-word;

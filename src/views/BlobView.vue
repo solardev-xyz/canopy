@@ -61,7 +61,7 @@ const markdownHtml = computed(() =>
       </template>
     </nav>
 
-    <LoadingBar v-if="isPending" />
+    <LoadingBar v-if="isPending" variant="detail" />
     <ErrorBox v-else-if="error" title="Could not load file" :error="error" />
     <div
       v-else-if="blob"

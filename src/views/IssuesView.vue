@@ -46,7 +46,7 @@ const { data: issues, isPending, error } = useIssues(rid, state);
       @close="showNewIssue = false"
     />
 
-    <LoadingBar v-if="isPending" />
+    <LoadingBar v-if="isPending" variant="list" :count="8" />
     <ErrorBox v-else-if="error" title="Could not load issues" :error="error" />
     <div
       v-else-if="issues?.length === 0"

@@ -32,7 +32,7 @@ const comment = (body) =>
 
 <template>
   <div class="max-w-4xl">
-    <LoadingBar v-if="isPending" />
+    <LoadingBar v-if="isPending" variant="detail" />
     <ErrorBox v-else-if="error" title="Could not load patch" :error="error" />
     <template v-else-if="patch">
       <div class="pb-4 border-b border-border-default mb-4">

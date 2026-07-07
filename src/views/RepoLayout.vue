@@ -110,7 +110,7 @@ async function copyRid() {
     </div>
 
     <div class="max-w-6xl mx-auto px-4 py-4">
-      <LoadingBar v-if="isPending" />
+      <LoadingBar v-if="isPending" variant="detail" />
       <ErrorBox
         v-else-if="error"
         title="Repository not available on your node"

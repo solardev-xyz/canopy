@@ -36,7 +36,7 @@ const stateColor = {
       </button>
     </div>
 
-    <LoadingBar v-if="isPending" />
+    <LoadingBar v-if="isPending" variant="list" :count="8" />
     <ErrorBox v-else-if="error" title="Could not load patches" :error="error" />
     <div
       v-else-if="patches?.length === 0"

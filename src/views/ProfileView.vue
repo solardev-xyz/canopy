@@ -127,7 +127,7 @@ async function copy(text) {
       </div>
     </section>
 
-    <LoadingBar v-if="isPending" />
+    <LoadingBar v-if="isPending" variant="cards" :count="4" />
     <template v-else-if="profile">
       <!-- maintainer of -->
       <section v-if="profile.maintains.length" class="mb-8">

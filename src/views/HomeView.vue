@@ -8,6 +8,7 @@ import { hueFromId } from "../lib/identicon.js";
 import { useNetworkIndex } from "../lib/index-queries.js";
 import { useRecentsStore } from "../stores/recents.js";
 import IndexFeedSettings from "../components/IndexFeedSettings.vue";
+import LoadingBar from "../components/LoadingBar.vue";
 
 const router = useRouter();
 const recents = useRecentsStore();
@@ -87,8 +88,20 @@ function go() {
       That doesn't look like a Radicle ID (rad:z…)
     </p>
 
+    <!-- index still loading (first fetch from Swarm can take a while) -->
+    <div v-if="indexPending" class="mt-10">
+      <div class="flex items-center gap-2 mb-3">
+        <h2 class="text-sm font-semibold text-fg-muted uppercase tracking-wide">
+          The Radicle network
+        </h2>
+        <span class="text-xs text-fg-muted">· loading index from Swarm…</span>
+      </div>
+      <span class="skeleton h-9 block mb-4 w-full" />
+      <LoadingBar variant="cards" :count="6" />
+    </div>
+
     <!-- global network directory (from the configured index feeds) -->
-    <div v-if="index?.available" class="mt-10">
+    <div v-else-if="index?.available" class="mt-10">
       <div class="flex items-center gap-2 mb-3">
         <h2 class="text-sm font-semibold text-fg-muted uppercase tracking-wide">
           The Radicle network

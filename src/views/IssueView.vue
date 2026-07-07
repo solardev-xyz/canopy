@@ -33,7 +33,7 @@ async function setState(state) {
 
 <template>
   <div class="max-w-4xl">
-    <LoadingBar v-if="isPending" />
+    <LoadingBar v-if="isPending" variant="detail" />
     <ErrorBox v-else-if="error" title="Could not load issue" :error="error" />
     <template v-else-if="issue">
       <div class="pb-4 border-b border-border-default mb-4">

@@ -25,7 +25,7 @@ const {
 
 <template>
   <div>
-    <LoadingBar v-if="isPending" />
+    <LoadingBar v-if="isPending" variant="list" :count="10" />
     <ErrorBox v-else-if="error" title="Could not load commits" :error="error" />
     <template v-else-if="commits">
       <div class="border border-border-default rounded-md overflow-hidden">
