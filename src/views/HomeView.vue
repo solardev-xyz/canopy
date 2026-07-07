@@ -1,10 +1,9 @@
 <script setup>
-import { ref, computed } from "vue";
-import { useRouter } from "vue-router";
-import { normalizeRid, formatTimestamp } from "../lib/rad-api.js";
+import { ref, computed, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { normalizeRid, formatTimestamp, shortDid } from "../lib/rad-api.js";
 import { matchRepo, searchUsers } from "../lib/index-api.js";
-import { shortDid } from "../lib/rad-api.js";
-import { hueFromId } from "../lib/identicon.js";
+import { identiconGradient } from "../lib/identicon.js";
 import { useNetworkIndex } from "../lib/index-queries.js";
 import { usePagedList } from "../lib/paging.js";
 import { useRecentsStore } from "../stores/recents.js";
@@ -23,6 +22,17 @@ const { data: index, isPending: indexPending } = useNetworkIndex();
 const repoList = usePagedList(
   computed(() => index.value?.repos ?? []),
   { pageSize: 24, match: matchRepo },
+);
+// The top-bar search hands off queries with no direct hit (/?q=…) —
+// watched, not read once, because HomeView's instance is reused when
+// only the query changes (e.g. searching while already on home).
+const route = useRoute();
+watch(
+  () => route.query.q,
+  (q) => {
+    if (typeof q === "string") repoList.query.value = q;
+  },
+  { immediate: true },
 );
 // People chips share the directory's filter query.
 const userResults = computed(() => {
@@ -149,7 +159,7 @@ function go() {
           >
             <span
               class="w-4 h-4 rounded-full inline-block border border-border-muted"
-              :style="{ background: `hsl(${hueFromId(user.did)} 65% 55%)` }"
+              :style="{ background: identiconGradient(user.did) }"
             />
             {{ user.alias ?? shortDid(user.did) }}
             <span class="text-xs text-fg-muted">

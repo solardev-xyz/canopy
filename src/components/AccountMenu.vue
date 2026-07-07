@@ -1,9 +1,10 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useRadicleStore } from "../stores/radicle.js";
 import { useNetworkIndex } from "../lib/index-queries.js";
 import { identiconGradient } from "../lib/identicon.js";
+import { useClickOutside } from "../lib/use-click-outside.js";
 
 /**
  * Classic account dropdown for the connected node identity: avatar,
@@ -46,12 +47,7 @@ async function disconnect() {
   await radicle.disconnect();
 }
 
-function onClickOutside(event) {
-  if (open.value && root.value && !root.value.contains(event.target))
-    open.value = false;
-}
-onMounted(() => document.addEventListener("click", onClickOutside));
-onUnmounted(() => document.removeEventListener("click", onClickOutside));
+useClickOutside(root, () => (open.value = false));
 </script>
 
 <template>

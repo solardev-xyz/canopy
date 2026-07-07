@@ -164,3 +164,10 @@ export function searchUsers(users, query) {
   if (!q) return [];
   return users.filter((user) => matchUser(user, q));
 }
+
+/** Case-insensitive repo search over name, description, and RID. */
+export function searchRepos(repos, query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  return repos.filter((repo) => matchRepo(repo, q));
+}

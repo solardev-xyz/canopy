@@ -1,23 +1,6 @@
 <script setup>
-import { ref } from "vue";
-import { useRouter } from "vue-router";
-import { normalizeRid } from "./lib/rad-api.js";
 import ConnectButton from "./components/ConnectButton.vue";
-
-const router = useRouter();
-const search = ref("");
-const invalid = ref(false);
-
-function go() {
-  const rid = normalizeRid(search.value);
-  if (!rid) {
-    invalid.value = true;
-    setTimeout(() => (invalid.value = false), 1200);
-    return;
-  }
-  search.value = "";
-  router.push({ name: "code", params: { rid } });
-}
+import TopSearch from "./components/TopSearch.vue";
 </script>
 
 <template>
@@ -33,17 +16,7 @@ function go() {
         <span>Canopy</span>
       </RouterLink>
       <div class="flex-1 max-w-md">
-        <input
-          v-model="search"
-          @keydown.enter="go"
-          type="text"
-          placeholder="Jump to repository… (rad:z…)"
-          :class="[
-            'w-full px-3 py-1.5 text-sm rounded-md border bg-canvas placeholder:text-fg-muted',
-            'focus:outline-none focus:ring-2 focus:ring-accent-emphasis/40',
-            invalid ? 'border-danger' : 'border-border-default',
-          ]"
-        />
+        <TopSearch />
       </div>
       <span class="text-xs text-fg-muted hidden sm:block mr-auto">
         a forge on the Radicle network — served by your own node
