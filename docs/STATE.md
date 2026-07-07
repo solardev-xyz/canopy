@@ -140,6 +140,9 @@ TS (node --experimental-strip-types), deps: bee-js 9 + ethers only.
 
 ## Published canopy (content-addressed, newest last)
 `bzz://2266f07caea962a21eeb81bd666dfb567e5cd8fd0efaa986cb02aa727bda576c`
+`bzz://9e080ecb1257886a2e22505de4a6db50862a312a0d334e6cc08f469261eca333`
+(2026-07-07: seed-status UX, pagination/search, account menu, top-bar
+unified search)
 Published via a **pre-existing publisher antd on `127.0.0.1:1699`**
 (another session's scratchpad process — will not survive reboot; its
 stamps/data at
