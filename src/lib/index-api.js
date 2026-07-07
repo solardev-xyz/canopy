@@ -143,6 +143,17 @@ export async function loadIndexes(feedRefs = getIndexFeeds()) {
   };
 }
 
+/** Case-insensitive user search over alias and DID. */
+export function searchUsers(users, query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  return users.filter(
+    (user) =>
+      (user.alias ?? "").toLowerCase().includes(q) ||
+      user.did.toLowerCase().includes(q),
+  );
+}
+
 /** Case-insensitive substring search over name/description/rid. */
 export function searchRepos(repos, query) {
   const q = query.trim().toLowerCase();

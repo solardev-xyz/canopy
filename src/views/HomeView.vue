@@ -2,7 +2,9 @@
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { normalizeRid, formatTimestamp } from "../lib/rad-api.js";
-import { searchRepos } from "../lib/index-api.js";
+import { searchRepos, searchUsers } from "../lib/index-api.js";
+import { shortDid } from "../lib/rad-api.js";
+import { hueFromId } from "../lib/identicon.js";
 import { useNetworkIndex } from "../lib/index-queries.js";
 import { useRecentsStore } from "../stores/recents.js";
 import IndexFeedSettings from "../components/IndexFeedSettings.vue";
@@ -19,6 +21,10 @@ const query = ref("");
 const results = computed(() => {
   if (!index.value?.available) return [];
   return searchRepos(index.value.repos, query.value).slice(0, 50);
+});
+const userResults = computed(() => {
+  if (!index.value?.available) return [];
+  return searchUsers(index.value.users, query.value).slice(0, 12);
 });
 const totals = computed(() => {
   const manifests = index.value?.manifests ?? [];
@@ -111,6 +117,33 @@ function go() {
         placeholder="Search repositories…"
         class="w-full px-4 py-2 mb-4 rounded-md border border-border-default bg-canvas text-sm focus:outline-none focus:ring-2 focus:ring-accent-emphasis/40"
       />
+
+      <!-- people matches -->
+      <div v-if="userResults.length" class="mb-4">
+        <h3
+          class="text-xs font-semibold text-fg-muted uppercase tracking-wide mb-2"
+        >
+          People
+        </h3>
+        <div class="flex gap-2 flex-wrap">
+          <RouterLink
+            v-for="user in userResults"
+            :key="user.did"
+            :to="{ name: 'user', params: { did: user.did } }"
+            class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border-default hover:border-fg-muted text-sm"
+          >
+            <span
+              class="w-4 h-4 rounded-full inline-block border border-border-muted"
+              :style="{ background: `hsl(${hueFromId(user.did)} 65% 55%)` }"
+            />
+            {{ user.alias ?? shortDid(user.did) }}
+            <span class="text-xs text-fg-muted">
+              {{ user.maintains.length }} repos ·
+              {{ user.issues + user.patches }} contributions
+            </span>
+          </RouterLink>
+        </div>
+      </div>
 
       <div class="grid sm:grid-cols-2 gap-3">
         <button

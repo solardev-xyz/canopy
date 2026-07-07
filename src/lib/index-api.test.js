@@ -1,6 +1,7 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   searchRepos,
+  searchUsers,
   isSwarmRef,
   loadIndexes,
   DEFAULT_INDEX_FEED,
@@ -40,6 +41,31 @@ describe("searchRepos", () => {
     expect(searchRepos(repos, "rad:zb")[0].name).toBe("canopy");
     expect(searchRepos(repos, "  ")).toHaveLength(2);
     expect(searchRepos(repos, "nope")).toHaveLength(0);
+  });
+});
+
+describe("searchUsers", () => {
+  const users = [
+    {
+      did: "did:key:z6MkAAA",
+      alias: "cloudhead",
+      maintains: [],
+      issues: 1,
+      patches: 0,
+    },
+    {
+      did: "did:key:z6MkBBB",
+      alias: null,
+      maintains: [],
+      issues: 0,
+      patches: 0,
+    },
+  ];
+  test("matches alias and did; empty query returns nothing", () => {
+    expect(searchUsers(users, "cloud")).toHaveLength(1);
+    expect(searchUsers(users, "z6mkbbb")).toHaveLength(1);
+    expect(searchUsers(users, "")).toHaveLength(0);
+    expect(searchUsers(users, "nobody")).toHaveLength(0);
   });
 });
 
