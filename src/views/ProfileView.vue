@@ -7,6 +7,7 @@ import { buildProfile, dedupeRepos } from "../lib/profile.js";
 import { shortDid, formatTimestamp } from "../lib/rad-api.js";
 import { hueFromId } from "../lib/identicon.js";
 import { radicleRequest } from "../lib/provider.js";
+import { useNetworkIndex } from "../lib/index-queries.js";
 import LoadingBar from "../components/LoadingBar.vue";
 import StateBadge from "../components/StateBadge.vue";
 
@@ -19,6 +20,13 @@ const PINNED = [
   { rid: "rad:z3gqcJUoA1n9HaHKufZs5FCSGazv5" },
   { rid: "rad:z4V1sjrXqjvFdnCUbxPFqd5p4DtH5" },
 ];
+
+const { data: index } = useNetworkIndex();
+const indexUser = computed(
+  () => index.value?.users?.find((u) => u.did === props.did) ?? null,
+);
+const indexRepoName = (rid) =>
+  index.value?.repos?.find((r) => r.rid === rid)?.name ?? rid;
 
 const { data: profile, isPending } = useQuery({
   queryKey: computed(() => ["profile", props.did, radicle.connected]),
@@ -36,7 +44,9 @@ const { data: profile, isPending } = useQuery({
   staleTime: 60_000,
 });
 
-const displayName = computed(() => profile.value?.alias ?? shortDid(props.did));
+const displayName = computed(
+  () => profile.value?.alias ?? indexUser.value?.alias ?? shortDid(props.did),
+);
 const nid = computed(() => props.did.replace(/^did:key:/, ""));
 
 async function copy(text) {
@@ -79,6 +89,44 @@ async function copy(text) {
       </div>
     </div>
 
+    <!-- network-wide view from the configured index feeds -->
+    <section v-if="indexUser" class="mb-8">
+      <h2
+        class="text-sm font-semibold text-fg-muted uppercase tracking-wide mb-3"
+      >
+        Across the network
+        <span class="normal-case font-normal">(from your index feeds)</span>
+      </h2>
+      <div
+        class="border border-border-default rounded-md p-4 text-sm flex gap-6 flex-wrap"
+      >
+        <span
+          >📦 maintains
+          <span class="font-semibold">{{ indexUser.maintains.length }}</span>
+          repos</span
+        >
+        <span
+          >⊙
+          <span class="font-semibold">{{ indexUser.issues }}</span> issues</span
+        >
+        <span
+          >⎇
+          <span class="font-semibold">{{ indexUser.patches }}</span>
+          patches</span
+        >
+      </div>
+      <div v-if="indexUser.maintains.length" class="flex gap-2 flex-wrap mt-2">
+        <RouterLink
+          v-for="rid in indexUser.maintains"
+          :key="rid"
+          :to="{ name: 'code', params: { rid } }"
+          class="text-xs px-2 py-1 rounded-full border border-border-default hover:border-fg-muted text-accent"
+        >
+          {{ indexRepoName(rid) }}
+        </RouterLink>
+      </div>
+    </section>
+
     <LoadingBar v-if="isPending" />
     <template v-else-if="profile">
       <!-- maintainer of -->
@@ -100,9 +148,7 @@ async function copy(text) {
               {{ repo.description }}
             </div>
             <div v-if="repo.seeding != null" class="text-xs text-fg-muted mt-2">
-              🌱 {{ repo.seeding }} node{{
-                repo.seeding === 1 ? "" : "s"
-              }}
+              🌱 {{ repo.seeding }} node{{ repo.seeding === 1 ? "" : "s" }}
               seeding
             </div>
           </RouterLink>
