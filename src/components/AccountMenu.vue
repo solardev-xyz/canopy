@@ -68,8 +68,8 @@ onUnmounted(() => document.removeEventListener("click", onClickOutside));
         :style="{ background: avatar }"
         aria-hidden="true"
       />
-      <span class="hidden sm:inline">
-        {{ radicle.alias ? `connected as ${radicle.alias}` : "node connected" }}
+      <span class="hidden sm:inline font-medium text-fg-default">
+        {{ radicle.alias ?? "node connected" }}
       </span>
       <span class="text-xs" aria-hidden="true">▾</span>
     </button>
