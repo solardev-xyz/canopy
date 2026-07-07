@@ -1,6 +1,6 @@
 <script setup>
-import { onMounted } from 'vue';
-import { useRadicleStore } from '../stores/radicle.js';
+import { onMounted } from "vue";
+import { useRadicleStore } from "../stores/radicle.js";
 
 const radicle = useRadicleStore();
 onMounted(() => radicle.init());
@@ -21,7 +21,7 @@ onMounted(() => radicle.init());
       title="Connected to your Radicle node"
     >
       <span class="w-2 h-2 rounded-full bg-success inline-block" />
-      {{ radicle.alias ? `connected as ${radicle.alias}` : 'node connected' }}
+      {{ radicle.alias ? `connected as ${radicle.alias}` : "node connected" }}
     </span>
   </div>
 </template>

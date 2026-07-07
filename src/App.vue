@@ -1,11 +1,11 @@
 <script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { normalizeRid } from './lib/rad-api.js';
-import ConnectButton from './components/ConnectButton.vue';
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { normalizeRid } from "./lib/rad-api.js";
+import ConnectButton from "./components/ConnectButton.vue";
 
 const router = useRouter();
-const search = ref('');
+const search = ref("");
 const invalid = ref(false);
 
 function go() {
@@ -15,8 +15,8 @@ function go() {
     setTimeout(() => (invalid.value = false), 1200);
     return;
   }
-  search.value = '';
-  router.push({ name: 'code', params: { rid } });
+  search.value = "";
+  router.push({ name: "code", params: { rid } });
 }
 </script>
 
@@ -25,7 +25,10 @@ function go() {
     <header
       class="flex items-center gap-4 px-4 py-3 bg-canvas-inset border-b border-border-default"
     >
-      <RouterLink to="/" class="flex items-center gap-2 font-semibold text-[15px] shrink-0">
+      <RouterLink
+        to="/"
+        class="flex items-center gap-2 font-semibold text-[15px] shrink-0"
+      >
         <span class="text-xl leading-none">🌳</span>
         <span>Canopy</span>
       </RouterLink>

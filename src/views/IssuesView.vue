@@ -1,15 +1,15 @@
 <script setup>
-import { computed, ref } from 'vue';
-import { useIssues } from '../lib/queries.js';
-import { formatTimestamp, shortDid } from '../lib/rad-api.js';
-import LoadingBar from '../components/LoadingBar.vue';
-import ErrorBox from '../components/ErrorBox.vue';
-import NewIssueForm from '../components/NewIssueForm.vue';
-import { useRadicleStore } from '../stores/radicle.js';
+import { computed, ref } from "vue";
+import { useIssues } from "../lib/queries.js";
+import { formatTimestamp, shortDid } from "../lib/rad-api.js";
+import LoadingBar from "../components/LoadingBar.vue";
+import ErrorBox from "../components/ErrorBox.vue";
+import NewIssueForm from "../components/NewIssueForm.vue";
+import { useRadicleStore } from "../stores/radicle.js";
 
 const props = defineProps({ repo: { type: Object, required: true } });
 const rid = computed(() => props.repo.rid);
-const state = ref('open');
+const state = ref("open");
 const showNewIssue = ref(false);
 const radicle = useRadicleStore();
 
@@ -28,7 +28,7 @@ const { data: issues, isPending, error } = useIssues(rid, state);
           state === s ? 'font-semibold' : 'text-fg-muted hover:text-fg-default',
         ]"
       >
-        <span aria-hidden="true">{{ s === 'open' ? '⊙' : '⊘' }}</span>
+        <span aria-hidden="true">{{ s === "open" ? "⊙" : "⊘" }}</span>
         {{ s }}
       </button>
       <button
@@ -40,24 +40,37 @@ const { data: issues, isPending, error } = useIssues(rid, state);
       </button>
     </div>
 
-    <NewIssueForm v-if="showNewIssue" :rid="rid" @close="showNewIssue = false" />
+    <NewIssueForm
+      v-if="showNewIssue"
+      :rid="rid"
+      @close="showNewIssue = false"
+    />
 
     <LoadingBar v-if="isPending" />
     <ErrorBox v-else-if="error" title="Could not load issues" :error="error" />
-    <div v-else-if="issues?.length === 0" class="py-16 text-center text-fg-muted">
+    <div
+      v-else-if="issues?.length === 0"
+      class="py-16 text-center text-fg-muted"
+    >
       No {{ state }} issues.
     </div>
-    <div v-else-if="issues" class="border border-border-default rounded-md overflow-hidden">
+    <div
+      v-else-if="issues"
+      class="border border-border-default rounded-md overflow-hidden"
+    >
       <div
         v-for="issue in issues"
         :key="issue.id"
         class="px-4 py-2.5 border-b border-border-muted last:border-0 hover:bg-canvas-subtle flex gap-3"
       >
         <span
-          :class="['mt-0.5', issue.state.status === 'open' ? 'text-success' : 'text-done']"
+          :class="[
+            'mt-0.5',
+            issue.state.status === 'open' ? 'text-success' : 'text-done',
+          ]"
           aria-hidden="true"
         >
-          {{ issue.state.status === 'open' ? '⊙' : '⊘' }}
+          {{ issue.state.status === "open" ? "⊙" : "⊘" }}
         </span>
         <div class="min-w-0 flex-1">
           <RouterLink
@@ -75,7 +88,12 @@ const { data: issues, isPending, error } = useIssues(rid, state);
           </RouterLink>
           <div class="text-xs text-fg-muted mt-0.5">
             opened {{ formatTimestamp(issue.discussion?.[0]?.timestamp) }} by
-            {{ issue.author.alias ?? shortDid(issue.author.id) }}
+            <RouterLink
+              :to="{ name: 'user', params: { did: issue.author.id } }"
+              class="hover:text-accent hover:underline"
+            >
+              {{ issue.author.alias ?? shortDid(issue.author.id) }}
+            </RouterLink>
           </div>
         </div>
         <span

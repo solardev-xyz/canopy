@@ -10,7 +10,7 @@
 export class ProviderError extends Error {
   constructor(code, message, data) {
     super(message);
-    this.name = 'ProviderError';
+    this.name = "ProviderError";
     this.code = code;
     this.data = data;
   }
@@ -19,16 +19,26 @@ export class ProviderError extends Error {
 export const USER_REJECTED = 4001;
 
 export function hasProvider() {
-  return typeof window !== 'undefined' && typeof window.radicle?.request === 'function';
+  return (
+    typeof window !== "undefined" &&
+    typeof window.radicle?.request === "function"
+  );
 }
 
 export async function radicleRequest(method, params) {
   if (!hasProvider()) {
-    throw new ProviderError(4900, 'window.radicle is not available in this browser');
+    throw new ProviderError(
+      4900,
+      "window.radicle is not available in this browser",
+    );
   }
   try {
     return await window.radicle.request({ method, params });
   } catch (err) {
-    throw new ProviderError(err.code ?? -32603, err.message ?? 'Provider error', err.data);
+    throw new ProviderError(
+      err.code ?? -32603,
+      err.message ?? "Provider error",
+      err.data,
+    );
   }
 }

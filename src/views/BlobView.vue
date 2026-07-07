@@ -1,37 +1,51 @@
 <script setup>
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
-import { useBlob } from '../lib/queries.js';
-import { highlightFile, renderMarkdown } from '../lib/markdown.js';
-import LoadingBar from '../components/LoadingBar.vue';
-import ErrorBox from '../components/ErrorBox.vue';
+import { computed } from "vue";
+import { useRoute } from "vue-router";
+import { useBlob } from "../lib/queries.js";
+import { highlightFile, renderMarkdown } from "../lib/markdown.js";
+import LoadingBar from "../components/LoadingBar.vue";
+import ErrorBox from "../components/ErrorBox.vue";
 
 const props = defineProps({ repo: { type: Object, required: true } });
 const route = useRoute();
 
 const rid = computed(() => props.repo.rid);
 const path = computed(() => route.params.path);
-const { data: blob, isPending, error } = useBlob(rid, computed(() => props.repo.head), path);
+const {
+  data: blob,
+  isPending,
+  error,
+} = useBlob(
+  rid,
+  computed(() => props.repo.head),
+  path,
+);
 
 const crumbs = computed(() => {
-  const parts = (path.value ?? '').split('/');
-  return parts.map((name, i) => ({ name, path: parts.slice(0, i + 1).join('/') }));
+  const parts = (path.value ?? "").split("/");
+  return parts.map((name, i) => ({
+    name,
+    path: parts.slice(0, i + 1).join("/"),
+  }));
 });
 
-const isMarkdown = computed(() => /\.(md|markdown)$/i.test(path.value ?? ''));
+const isMarkdown = computed(() => /\.(md|markdown)$/i.test(path.value ?? ""));
 const lines = computed(() => {
   if (!blob.value || blob.value.binary || isMarkdown.value) return [];
-  return highlightFile(blob.value.content ?? '', path.value).split('\n');
+  return highlightFile(blob.value.content ?? "", path.value).split("\n");
 });
 const markdownHtml = computed(() =>
-  isMarkdown.value && blob.value ? renderMarkdown(blob.value.content) : ''
+  isMarkdown.value && blob.value ? renderMarkdown(blob.value.content) : "",
 );
 </script>
 
 <template>
   <div>
     <nav class="text-sm flex items-center gap-1 flex-wrap mb-3">
-      <RouterLink :to="{ name: 'code', params: { rid } }" class="text-accent hover:underline">
+      <RouterLink
+        :to="{ name: 'code', params: { rid } }"
+        class="text-accent hover:underline"
+      >
         {{ repo.name }}
       </RouterLink>
       <template v-for="(c, i) in crumbs" :key="c.path">
@@ -49,12 +63,17 @@ const markdownHtml = computed(() =>
 
     <LoadingBar v-if="isPending" />
     <ErrorBox v-else-if="error" title="Could not load file" :error="error" />
-    <div v-else-if="blob" class="border border-border-default rounded-md overflow-hidden">
+    <div
+      v-else-if="blob"
+      class="border border-border-default rounded-md overflow-hidden"
+    >
       <div
         class="px-4 py-2 text-xs text-fg-muted bg-canvas-subtle border-b border-border-default flex gap-3"
       >
         <span class="font-semibold text-fg-default">{{ blob.name }}</span>
-        <span v-if="!blob.binary">{{ (blob.content ?? '').split('\n').length }} lines</span>
+        <span v-if="!blob.binary"
+          >{{ (blob.content ?? "").split("\n").length }} lines</span
+        >
         <span v-if="blob.binary">binary file</span>
       </div>
       <div v-if="blob.binary" class="p-8 text-center text-fg-muted text-sm">

@@ -1,10 +1,10 @@
 <script setup>
-import { computed, ref } from 'vue';
-import { useCommits } from '../lib/queries.js';
-import { formatTimestamp } from '../lib/rad-api.js';
-import LoadingBar from '../components/LoadingBar.vue';
-import ErrorBox from '../components/ErrorBox.vue';
-import AuthorChip from '../components/AuthorChip.vue';
+import { computed, ref } from "vue";
+import { useCommits } from "../lib/queries.js";
+import { formatTimestamp } from "../lib/rad-api.js";
+import LoadingBar from "../components/LoadingBar.vue";
+import ErrorBox from "../components/ErrorBox.vue";
+import AuthorChip from "../components/AuthorChip.vue";
 
 const props = defineProps({ repo: { type: Object, required: true } });
 const rid = computed(() => props.repo.rid);
@@ -15,7 +15,12 @@ const {
   data: commits,
   isPending,
   error,
-} = useCommits(rid, computed(() => props.repo.head), page, PER_PAGE);
+} = useCommits(
+  rid,
+  computed(() => props.repo.head),
+  page,
+  PER_PAGE,
+);
 </script>
 
 <template>
@@ -38,7 +43,10 @@ const {
             </RouterLink>
             <div class="text-xs text-fg-muted mt-1 flex items-center gap-1.5">
               <AuthorChip :name="c.author?.name" />
-              <span>committed {{ formatTimestamp(c.committer?.time ?? c.author?.time) }}</span>
+              <span
+                >committed
+                {{ formatTimestamp(c.committer?.time ?? c.author?.time) }}</span
+              >
             </div>
           </div>
           <RouterLink

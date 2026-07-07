@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed } from "vue";
 
 const props = defineProps({
   kind: { type: String, required: true }, // 'issue' | 'patch'
@@ -8,15 +8,17 @@ const props = defineProps({
 
 const config = computed(() => {
   const s = props.state?.status;
-  if (props.kind === 'issue') {
-    if (s === 'open') return { label: 'Open', cls: 'bg-success-emphasis', icon: '⊙' };
-    return { label: 'Closed', cls: 'bg-done', icon: '⊘' };
+  if (props.kind === "issue") {
+    if (s === "open")
+      return { label: "Open", cls: "bg-success-emphasis", icon: "⊙" };
+    return { label: "Closed", cls: "bg-done", icon: "⊘" };
   }
   // patch
-  if (s === 'open') return { label: 'Open', cls: 'bg-success-emphasis', icon: '⎇' };
-  if (s === 'draft') return { label: 'Draft', cls: 'bg-fg-muted', icon: '⎇' };
-  if (s === 'merged') return { label: 'Merged', cls: 'bg-done', icon: '⎇' };
-  return { label: 'Archived', cls: 'bg-danger', icon: '⎇' };
+  if (s === "open")
+    return { label: "Open", cls: "bg-success-emphasis", icon: "⎇" };
+  if (s === "draft") return { label: "Draft", cls: "bg-fg-muted", icon: "⎇" };
+  if (s === "merged") return { label: "Merged", cls: "bg-done", icon: "⎇" };
+  return { label: "Archived", cls: "bg-danger", icon: "⎇" };
 });
 </script>
 

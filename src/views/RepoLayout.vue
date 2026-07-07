@@ -1,13 +1,13 @@
 <script setup>
-import { computed, watch } from 'vue';
-import { useRoute } from 'vue-router';
-import { useRepo } from '../lib/queries.js';
-import { useRecentsStore } from '../stores/recents.js';
-import { shortDid } from '../lib/rad-api.js';
-import LoadingBar from '../components/LoadingBar.vue';
-import ErrorBox from '../components/ErrorBox.vue';
-import SeedButton from '../components/SeedButton.vue';
-import { useRadicleStore } from '../stores/radicle.js';
+import { computed, watch } from "vue";
+import { useRoute } from "vue-router";
+import { useRepo } from "../lib/queries.js";
+import { useRecentsStore } from "../stores/recents.js";
+import { shortDid } from "../lib/rad-api.js";
+import LoadingBar from "../components/LoadingBar.vue";
+import ErrorBox from "../components/ErrorBox.vue";
+import SeedButton from "../components/SeedButton.vue";
+import { useRadicleStore } from "../stores/radicle.js";
 
 const props = defineProps({ rid: { type: String, required: true } });
 const route = useRoute();
@@ -22,18 +22,29 @@ async function seedAndReload() {
 
 const recents = useRecentsStore();
 watch(repo, (r) => {
-  if (r) recents.remember({ rid: r.rid, name: r.name, description: r.description });
+  if (r)
+    recents.remember({ rid: r.rid, name: r.name, description: r.description });
 });
 
 const tabs = computed(() => [
-  { name: 'code', label: 'Code', icon: '‹›', active: ['code', 'tree', 'blob'] },
-  { name: 'issues', label: 'Issues', icon: '⊙', active: ['issues', 'issue'] },
-  { name: 'patches', label: 'Patches', icon: '⎇', active: ['patches', 'patch'] },
-  { name: 'commits', label: 'Commits', icon: '⏱', active: ['commits', 'commit'] },
+  { name: "code", label: "Code", icon: "‹›", active: ["code", "tree", "blob"] },
+  { name: "issues", label: "Issues", icon: "⊙", active: ["issues", "issue"] },
+  {
+    name: "patches",
+    label: "Patches",
+    icon: "⎇",
+    active: ["patches", "patch"],
+  },
+  {
+    name: "commits",
+    label: "Commits",
+    icon: "⏱",
+    active: ["commits", "commit"],
+  },
 ]);
 
 const activeTab = computed(
-  () => tabs.value.find((t) => t.active.includes(route.name))?.name ?? 'code'
+  () => tabs.value.find((t) => t.active.includes(route.name))?.name ?? "code",
 );
 
 async function copyRid() {
@@ -56,13 +67,13 @@ async function copyRid() {
               :to="{ name: 'code', params: { rid } }"
               class="text-accent font-semibold hover:underline"
             >
-              {{ repo?.name ?? '…' }}
+              {{ repo?.name ?? "…" }}
             </RouterLink>
           </h1>
           <span
             class="text-xs px-2 py-0.5 rounded-full border border-border-default text-fg-muted"
           >
-            {{ repo?.visibility ?? 'public' }}
+            {{ repo?.visibility ?? "public" }}
           </span>
           <button
             @click="copyRid"
@@ -75,7 +86,9 @@ async function copyRid() {
             <SeedButton :rid="rid" />
           </span>
         </div>
-        <p v-if="repo?.description" class="text-fg-muted text-sm mb-3">{{ repo.description }}</p>
+        <p v-if="repo?.description" class="text-fg-muted text-sm mb-3">
+          {{ repo.description }}
+        </p>
 
         <nav class="flex gap-1 -mb-px">
           <RouterLink
@@ -98,7 +111,11 @@ async function copyRid() {
 
     <div class="max-w-6xl mx-auto px-4 py-4">
       <LoadingBar v-if="isPending" />
-      <ErrorBox v-else-if="error" title="Repository not available on your node" :error="error">
+      <ErrorBox
+        v-else-if="error"
+        title="Repository not available on your node"
+        :error="error"
+      >
         <p class="text-sm text-fg-muted mt-2">
           Your node only serves repositories it seeds.
         </p>
@@ -109,7 +126,11 @@ async function copyRid() {
             :disabled="radicle.busy"
             class="px-4 py-2 text-sm rounded-md font-medium text-white bg-[var(--cnp-btn-primary-bg)] hover:opacity-90 cursor-pointer disabled:opacity-50"
           >
-            {{ radicle.busy ? 'Fetching from the network…' : '🌱 Seed this repository' }}
+            {{
+              radicle.busy
+                ? "Fetching from the network…"
+                : "🌱 Seed this repository"
+            }}
           </button>
           <button
             v-else

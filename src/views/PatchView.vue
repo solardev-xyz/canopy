@@ -1,16 +1,16 @@
 <script setup>
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
-import { usePatch } from '../lib/queries.js';
-import { formatTimestamp, shortDid } from '../lib/rad-api.js';
-import LoadingBar from '../components/LoadingBar.vue';
-import ErrorBox from '../components/ErrorBox.vue';
-import StateBadge from '../components/StateBadge.vue';
-import MarkdownBody from '../components/MarkdownBody.vue';
-import CommentCard from '../components/CommentCard.vue';
-import CommentForm from '../components/CommentForm.vue';
-import AuthorChip from '../components/AuthorChip.vue';
-import { usePatchActions } from '../lib/actions.js';
+import { computed } from "vue";
+import { useRoute } from "vue-router";
+import { usePatch } from "../lib/queries.js";
+import { formatTimestamp, shortDid } from "../lib/rad-api.js";
+import LoadingBar from "../components/LoadingBar.vue";
+import ErrorBox from "../components/ErrorBox.vue";
+import StateBadge from "../components/StateBadge.vue";
+import MarkdownBody from "../components/MarkdownBody.vue";
+import CommentCard from "../components/CommentCard.vue";
+import CommentForm from "../components/CommentForm.vue";
+import AuthorChip from "../components/AuthorChip.vue";
+import { usePatchActions } from "../lib/actions.js";
 
 const props = defineProps({ repo: { type: Object, required: true } });
 const route = useRoute();
@@ -22,7 +22,7 @@ const { data: patch, isPending, error } = usePatch(rid, id);
 // Newest revision last — mirror GitHub's oldest-first conversation order.
 const revisions = computed(() => patch.value?.revisions ?? []);
 
-const verdictLabel = { accept: 'approved', reject: 'requested changes' };
+const verdictLabel = { accept: "approved", reject: "requested changes" };
 
 const actions = usePatchActions(props.repo.rid);
 // Comments land on the latest revision, like commenting on a PR's HEAD.
@@ -38,16 +38,23 @@ const comment = (body) =>
       <div class="pb-4 border-b border-border-default mb-4">
         <h1 class="text-2xl mb-2">
           {{ patch.title }}
-          <span class="text-fg-muted font-mono text-base">#{{ patch.id.slice(0, 7) }}</span>
+          <span class="text-fg-muted font-mono text-base"
+            >#{{ patch.id.slice(0, 7) }}</span
+          >
         </h1>
         <div class="flex items-center gap-2 text-sm text-fg-muted flex-wrap">
           <StateBadge kind="patch" :state="patch.state" />
           <span>
-            <span class="font-semibold text-fg-default">
+            <RouterLink
+              :to="{ name: 'user', params: { did: patch.author.id } }"
+              class="font-semibold text-fg-default hover:text-accent hover:underline"
+            >
               {{ patch.author.alias ?? shortDid(patch.author.id) }}
-            </span>
+            </RouterLink>
             wants to merge into
-            <code class="font-mono text-xs px-1.5 py-0.5 bg-neutral-muted rounded">
+            <code
+              class="font-mono text-xs px-1.5 py-0.5 bg-neutral-muted rounded"
+            >
               {{ patch.target }}
             </code>
           </span>
@@ -63,14 +70,18 @@ const comment = (body) =>
           <div class="text-sm mb-2">
             <span class="font-semibold">Revision {{ i + 1 }}</span>
             <span class="text-fg-muted">
-              · {{ rev.id.slice(0, 7) }} · {{ formatTimestamp(rev.timestamp) }} · base
+              · {{ rev.id.slice(0, 7) }} ·
+              {{ formatTimestamp(rev.timestamp) }} · base
               <code class="font-mono text-xs">{{ rev.base?.slice(0, 7) }}</code>
               → head
               <code class="font-mono text-xs">{{ rev.oid?.slice(0, 7) }}</code>
             </span>
           </div>
 
-          <div v-if="rev.description" class="border border-border-default rounded-md p-4 mb-3">
+          <div
+            v-if="rev.description"
+            class="border border-border-default rounded-md p-4 mb-3"
+          >
             <MarkdownBody :source="rev.description" />
           </div>
 
@@ -82,28 +93,48 @@ const comment = (body) =>
             >
               <AuthorChip :author="review.author" />
               <span
-                :class="review.verdict === 'accept' ? 'text-success' : 'text-danger'"
+                :class="
+                  review.verdict === 'accept' ? 'text-success' : 'text-danger'
+                "
                 class="font-medium"
               >
-                {{ verdictLabel[review.verdict] ?? review.verdict ?? 'reviewed' }}
+                {{
+                  verdictLabel[review.verdict] ?? review.verdict ?? "reviewed"
+                }}
               </span>
-              <span v-if="review.summary" class="text-fg-muted">— {{ review.summary }}</span>
+              <span v-if="review.summary" class="text-fg-muted"
+                >— {{ review.summary }}</span
+              >
             </div>
           </div>
 
           <div v-if="rev.discussions?.length" class="space-y-3">
-            <CommentCard v-for="c in rev.discussions" :key="c.id" :comment="c" />
+            <CommentCard
+              v-for="c in rev.discussions"
+              :key="c.id"
+              :comment="c"
+            />
           </div>
         </div>
       </div>
 
-      <div v-if="patch.merges?.length" class="mt-6 text-sm text-done font-medium">
+      <div
+        v-if="patch.merges?.length"
+        class="mt-6 text-sm text-done font-medium"
+      >
         ✓ Merged by
-        {{ patch.merges.map((m) => m.author?.alias ?? shortDid(m.author?.id)).join(', ') }}
+        {{
+          patch.merges
+            .map((m) => m.author?.alias ?? shortDid(m.author?.id))
+            .join(", ")
+        }}
       </div>
 
       <div class="mt-6">
-        <CommentForm :on-submit="comment" placeholder="Comment on the latest revision" />
+        <CommentForm
+          :on-submit="comment"
+          placeholder="Comment on the latest revision"
+        />
       </div>
     </template>
   </div>

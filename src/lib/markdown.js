@@ -1,14 +1,14 @@
-import { marked } from 'marked';
-import DOMPurify from 'dompurify';
+import { marked } from "marked";
+import DOMPurify from "dompurify";
 // The common-languages build (~40 langs) — the full build is ~1 MB, which
 // matters for an app distributed through Swarm.
-import hljs from 'highlight.js/lib/common';
+import hljs from "highlight.js/lib/common";
 
 marked.setOptions({ gfm: true, breaks: false });
 
 /** Render untrusted markdown to sanitized HTML with code highlighting. */
 export function renderMarkdown(src) {
-  if (!src) return '';
+  if (!src) return "";
   const renderer = new marked.Renderer();
   renderer.code = ({ text, lang }) => {
     let html;
@@ -25,7 +25,7 @@ export function renderMarkdown(src) {
 
 /** Highlight a whole file; picks the language from the filename. */
 export function highlightFile(content, filename) {
-  const ext = (filename ?? '').split('.').pop()?.toLowerCase();
+  const ext = (filename ?? "").split(".").pop()?.toLowerCase();
   const lang = hljs.getLanguage(ext) ? ext : null;
   try {
     if (lang) return hljs.highlight(content, { language: lang }).value;
@@ -36,5 +36,8 @@ export function highlightFile(content, filename) {
 }
 
 function escapeHtml(s) {
-  return s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+  return s
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
 }

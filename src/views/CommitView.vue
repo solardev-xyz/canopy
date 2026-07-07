@@ -1,12 +1,12 @@
 <script setup>
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
-import { useCommit } from '../lib/queries.js';
-import { formatTimestamp } from '../lib/rad-api.js';
-import LoadingBar from '../components/LoadingBar.vue';
-import ErrorBox from '../components/ErrorBox.vue';
-import AuthorChip from '../components/AuthorChip.vue';
-import DiffFile from '../components/DiffFile.vue';
+import { computed } from "vue";
+import { useRoute } from "vue-router";
+import { useCommit } from "../lib/queries.js";
+import { formatTimestamp } from "../lib/rad-api.js";
+import LoadingBar from "../components/LoadingBar.vue";
+import ErrorBox from "../components/ErrorBox.vue";
+import AuthorChip from "../components/AuthorChip.vue";
+import DiffFile from "../components/DiffFile.vue";
 
 const props = defineProps({ repo: { type: Object, required: true } });
 const route = useRoute();
@@ -29,17 +29,18 @@ const files = computed(() => data.value?.diff?.files ?? []);
         <pre
           v-if="data.commit.description"
           class="text-sm text-fg-muted whitespace-pre-wrap mb-3 font-sans"
-          >{{ data.commit.description.trim() }}</pre
-        >
+          >{{ data.commit.description.trim() }}</pre>
         <div class="text-xs text-fg-muted flex items-center gap-1.5 flex-wrap">
           <AuthorChip :name="data.commit.author?.name" />
-          <span>committed {{ formatTimestamp(data.commit.committer?.time) }}</span>
+          <span
+            >committed {{ formatTimestamp(data.commit.committer?.time) }}</span
+          >
           <span class="font-mono ml-auto">{{ data.commit.id }}</span>
         </div>
       </div>
 
       <div v-if="stats" class="text-sm text-fg-muted mb-3">
-        {{ files.length }} file{{ files.length === 1 ? '' : 's' }} changed
+        {{ files.length }} file{{ files.length === 1 ? "" : "s" }} changed
         <span class="text-success font-semibold">+{{ stats.insertions }}</span>
         <span class="text-danger font-semibold">−{{ stats.deletions }}</span>
       </div>

@@ -1,7 +1,7 @@
 <script setup>
-import { ref } from 'vue';
-import { useQueryClient } from '@tanstack/vue-query';
-import { useRadicleStore } from '../stores/radicle.js';
+import { ref } from "vue";
+import { useQueryClient } from "@tanstack/vue-query";
+import { useRadicleStore } from "../stores/radicle.js";
 
 const props = defineProps({ rid: { type: String, required: true } });
 const radicle = useRadicleStore();
@@ -25,7 +25,10 @@ async function toggle() {
 </script>
 
 <template>
-  <div v-if="radicle.available && radicle.connected" class="inline-flex items-center gap-2">
+  <div
+    v-if="radicle.available && radicle.connected"
+    class="inline-flex items-center gap-2"
+  >
     <button
       @click="toggle"
       :disabled="radicle.busy"
@@ -35,10 +38,16 @@ async function toggle() {
           ? 'border-border-default bg-canvas-subtle hover:border-danger'
           : 'border-transparent text-white bg-[var(--cnp-btn-primary-bg)] hover:opacity-90',
       ]"
-      :title="radicle.isSeeded(rid) ? 'Your node seeds this repository' : 'Seed with your node'"
+      :title="
+        radicle.isSeeded(rid)
+          ? 'Your node seeds this repository'
+          : 'Seed with your node'
+      "
     >
       <span aria-hidden="true">🌱</span>
-      {{ radicle.busy ? 'Working…' : radicle.isSeeded(rid) ? 'Seeding' : 'Seed' }}
+      {{
+        radicle.busy ? "Working…" : radicle.isSeeded(rid) ? "Seeding" : "Seed"
+      }}
     </button>
     <span v-if="error" class="text-danger text-xs">{{ error }}</span>
   </div>

@@ -1,29 +1,29 @@
 <script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { normalizeRid } from '../lib/rad-api.js';
-import { useRecentsStore } from '../stores/recents.js';
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { normalizeRid } from "../lib/rad-api.js";
+import { useRecentsStore } from "../stores/recents.js";
 
 const router = useRouter();
 const recents = useRecentsStore();
-const input = ref('');
+const input = ref("");
 const invalid = ref(false);
 
 const PINNED = [
   {
-    rid: 'rad:z3gqcJUoA1n9HaHKufZs5FCSGazv5',
-    name: 'heartwood',
-    description: 'Radicle Heartwood Protocol & Stack',
+    rid: "rad:z3gqcJUoA1n9HaHKufZs5FCSGazv5",
+    name: "heartwood",
+    description: "Radicle Heartwood Protocol & Stack",
   },
   {
-    rid: 'rad:z4V1sjrXqjvFdnCUbxPFqd5p4DtH5',
-    name: 'radicle-explorer',
-    description: 'Web frontend for Radicle',
+    rid: "rad:z4V1sjrXqjvFdnCUbxPFqd5p4DtH5",
+    name: "radicle-explorer",
+    description: "Web frontend for Radicle",
   },
 ];
 
 function open(rid) {
-  router.push({ name: 'code', params: { rid } });
+  router.push({ name: "code", params: { rid } });
 }
 
 function go() {
@@ -43,7 +43,8 @@ function go() {
       <div class="text-5xl mb-4">🌳</div>
       <h1 class="text-3xl font-semibold mb-2">Canopy</h1>
       <p class="text-fg-muted max-w-md mx-auto">
-        Browse code, issues and patches on the Radicle peer-to-peer network — everything served by
+        Browse code, issues and patches on the Radicle peer-to-peer network —
+        everything served by
         <span class="font-semibold text-fg-default">your own node</span>.
       </p>
     </div>
@@ -72,7 +73,11 @@ function go() {
     </p>
 
     <div v-if="recents.recents.length" class="mt-10">
-      <h2 class="text-sm font-semibold text-fg-muted uppercase tracking-wide mb-3">Recent</h2>
+      <h2
+        class="text-sm font-semibold text-fg-muted uppercase tracking-wide mb-3"
+      >
+        Recent
+      </h2>
       <div class="grid sm:grid-cols-2 gap-3">
         <button
           v-for="r in recents.recents"
@@ -80,15 +85,23 @@ function go() {
           @click="open(r.rid)"
           class="text-left border border-border-default rounded-md p-4 hover:border-fg-muted cursor-pointer"
         >
-          <div class="font-semibold text-accent mb-1">{{ r.name ?? r.rid }}</div>
-          <div class="text-sm text-fg-muted line-clamp-2">{{ r.description }}</div>
-          <div class="text-xs text-fg-muted font-mono mt-2 truncate">{{ r.rid }}</div>
+          <div class="font-semibold text-accent mb-1">
+            {{ r.name ?? r.rid }}
+          </div>
+          <div class="text-sm text-fg-muted line-clamp-2">
+            {{ r.description }}
+          </div>
+          <div class="text-xs text-fg-muted font-mono mt-2 truncate">
+            {{ r.rid }}
+          </div>
         </button>
       </div>
     </div>
 
     <div class="mt-10">
-      <h2 class="text-sm font-semibold text-fg-muted uppercase tracking-wide mb-3">
+      <h2
+        class="text-sm font-semibold text-fg-muted uppercase tracking-wide mb-3"
+      >
         From the network
       </h2>
       <div class="grid sm:grid-cols-2 gap-3">
@@ -99,8 +112,12 @@ function go() {
           class="text-left border border-border-default rounded-md p-4 hover:border-fg-muted cursor-pointer"
         >
           <div class="font-semibold text-accent mb-1">{{ r.name }}</div>
-          <div class="text-sm text-fg-muted line-clamp-2">{{ r.description }}</div>
-          <div class="text-xs text-fg-muted font-mono mt-2 truncate">{{ r.rid }}</div>
+          <div class="text-sm text-fg-muted line-clamp-2">
+            {{ r.description }}
+          </div>
+          <div class="text-xs text-fg-muted font-mono mt-2 truncate">
+            {{ r.rid }}
+          </div>
         </button>
       </div>
     </div>

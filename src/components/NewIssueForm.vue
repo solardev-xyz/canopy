@@ -1,17 +1,17 @@
 <script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { useIssueActions } from '../lib/actions.js';
-import { USER_REJECTED } from '../lib/provider.js';
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { useIssueActions } from "../lib/actions.js";
+import { USER_REJECTED } from "../lib/provider.js";
 
 const props = defineProps({ rid: { type: String, required: true } });
-const emit = defineEmits(['close']);
+const emit = defineEmits(["close"]);
 
 const router = useRouter();
 const actions = useIssueActions(props.rid);
-const title = ref('');
-const description = ref('');
-const labels = ref('');
+const title = ref("");
+const description = ref("");
+const labels = ref("");
 const sending = ref(false);
 const error = ref(null);
 
@@ -21,7 +21,7 @@ async function submit() {
   error.value = null;
   try {
     const parsedLabels = labels.value
-      .split(',')
+      .split(",")
       .map((l) => l.trim())
       .filter(Boolean);
     const { id } = await actions.createIssue({
@@ -29,8 +29,8 @@ async function submit() {
       description: description.value,
       labels: parsedLabels,
     });
-    emit('close');
-    router.push({ name: 'issue', params: { rid: props.rid, id } });
+    emit("close");
+    router.push({ name: "issue", params: { rid: props.rid, id } });
   } catch (err) {
     if (err.code !== USER_REJECTED) error.value = err.message;
   } finally {
@@ -73,7 +73,7 @@ async function submit() {
         :disabled="!title.trim() || !description.trim() || sending"
         class="px-4 py-1.5 text-sm rounded-md font-medium text-white bg-[var(--cnp-btn-primary-bg)] disabled:opacity-50 hover:opacity-90 cursor-pointer disabled:cursor-default"
       >
-        {{ sending ? 'Signing…' : 'Submit new issue' }}
+        {{ sending ? "Signing…" : "Submit new issue" }}
       </button>
     </div>
   </div>

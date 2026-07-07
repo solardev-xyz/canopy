@@ -1,11 +1,11 @@
-import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { defineStore } from "pinia";
+import { ref } from "vue";
 
-const KEY = 'canopy.recent-repos';
+const KEY = "canopy.recent-repos";
 const MAX = 8;
 
 /** Recently visited repos, persisted to localStorage. */
-export const useRecentsStore = defineStore('recents', () => {
+export const useRecentsStore = defineStore("recents", () => {
   const recents = ref(load());
 
   function load() {
@@ -18,7 +18,10 @@ export const useRecentsStore = defineStore('recents', () => {
 
   function remember({ rid, name, description }) {
     const rest = recents.value.filter((r) => r.rid !== rid);
-    recents.value = [{ rid, name, description, at: Date.now() }, ...rest].slice(0, MAX);
+    recents.value = [{ rid, name, description, at: Date.now() }, ...rest].slice(
+      0,
+      MAX,
+    );
     try {
       localStorage.setItem(KEY, JSON.stringify(recents.value));
     } catch {

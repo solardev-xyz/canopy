@@ -2,15 +2,15 @@
  * TanStack Query composables over the rad-api data layer.
  * All arguments are refs/computeds so queries re-run on route changes.
  */
-import { computed, unref } from 'vue';
-import { useQuery } from '@tanstack/vue-query';
-import * as api from './rad-api.js';
+import { computed, unref } from "vue";
+import { useQuery } from "@tanstack/vue-query";
+import * as api from "./rad-api.js";
 
 const enabled = (...vals) => computed(() => vals.every((v) => !!unref(v)));
 
 export function useRepo(rid) {
   return useQuery({
-    queryKey: ['repo', rid],
+    queryKey: ["repo", rid],
     queryFn: () => api.getRepo(unref(rid)),
     enabled: enabled(rid),
   });
@@ -18,15 +18,15 @@ export function useRepo(rid) {
 
 export function useTree(rid, sha, path) {
   return useQuery({
-    queryKey: ['tree', rid, sha, path],
-    queryFn: () => api.getTree(unref(rid), unref(sha), unref(path) || ''),
+    queryKey: ["tree", rid, sha, path],
+    queryFn: () => api.getTree(unref(rid), unref(sha), unref(path) || ""),
     enabled: enabled(rid, sha),
   });
 }
 
 export function useBlob(rid, sha, path) {
   return useQuery({
-    queryKey: ['blob', rid, sha, path],
+    queryKey: ["blob", rid, sha, path],
     queryFn: () => api.getBlob(unref(rid), unref(sha), unref(path)),
     enabled: enabled(rid, sha, path),
   });
@@ -34,7 +34,7 @@ export function useBlob(rid, sha, path) {
 
 export function useReadme(rid, sha) {
   return useQuery({
-    queryKey: ['readme', rid, sha],
+    queryKey: ["readme", rid, sha],
     queryFn: () => api.getReadme(unref(rid), unref(sha)),
     enabled: enabled(rid, sha),
     retry: false, // repos without a README 404 — that's fine
@@ -43,7 +43,7 @@ export function useReadme(rid, sha) {
 
 export function useCommits(rid, parent, page = 0, perPage = 30) {
   return useQuery({
-    queryKey: ['commits', rid, parent, page, perPage],
+    queryKey: ["commits", rid, parent, page, perPage],
     queryFn: () =>
       api.getCommits(unref(rid), {
         parent: unref(parent),
@@ -57,7 +57,7 @@ export function useCommits(rid, parent, page = 0, perPage = 30) {
 
 export function useCommit(rid, sha) {
   return useQuery({
-    queryKey: ['commit', rid, sha],
+    queryKey: ["commit", rid, sha],
     queryFn: () => api.getCommit(unref(rid), unref(sha)),
     enabled: enabled(rid, sha),
   });
@@ -65,8 +65,9 @@ export function useCommit(rid, sha) {
 
 export function useIssues(rid, state) {
   return useQuery({
-    queryKey: ['issues', rid, state],
-    queryFn: () => api.getIssues(unref(rid), { state: unref(state), perPage: 100 }),
+    queryKey: ["issues", rid, state],
+    queryFn: () =>
+      api.getIssues(unref(rid), { state: unref(state), perPage: 100 }),
     enabled: enabled(rid),
     placeholderData: (prev) => prev,
   });
@@ -74,7 +75,7 @@ export function useIssues(rid, state) {
 
 export function useIssue(rid, id) {
   return useQuery({
-    queryKey: ['issue', rid, id],
+    queryKey: ["issue", rid, id],
     queryFn: () => api.getIssue(unref(rid), unref(id)),
     enabled: enabled(rid, id),
   });
@@ -82,8 +83,9 @@ export function useIssue(rid, id) {
 
 export function usePatches(rid, state) {
   return useQuery({
-    queryKey: ['patches', rid, state],
-    queryFn: () => api.getPatches(unref(rid), { state: unref(state), perPage: 100 }),
+    queryKey: ["patches", rid, state],
+    queryFn: () =>
+      api.getPatches(unref(rid), { state: unref(state), perPage: 100 }),
     enabled: enabled(rid),
     placeholderData: (prev) => prev,
   });
@@ -91,7 +93,7 @@ export function usePatches(rid, state) {
 
 export function usePatch(rid, id) {
   return useQuery({
-    queryKey: ['patch', rid, id],
+    queryKey: ["patch", rid, id],
     queryFn: () => api.getPatch(unref(rid), unref(id)),
     enabled: enabled(rid, id),
   });
