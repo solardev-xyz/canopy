@@ -1,24 +1,12 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
-import { VueQueryPlugin, QueryClient } from "@tanstack/vue-query";
+import { VueQueryPlugin } from "@tanstack/vue-query";
 import { persistQueryClient } from "@tanstack/query-persist-client-core";
 import { get, set, del } from "idb-keyval";
 import App from "./App.vue";
 import { router } from "./router.js";
+import { queryClient } from "./lib/query-client.js";
 import "./style.css";
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      // Repo data changes only when the node syncs; avoid refetch storms.
-      staleTime: 30_000,
-      retry: 1,
-      refetchOnWindowFocus: false,
-      // Keep entries around long enough to be worth persisting.
-      gcTime: 1000 * 60 * 60 * 24,
-    },
-  },
-});
 
 // Persist the query cache to IndexedDB (the swarmit pattern) so reloads
 // hydrate instantly and revalidate in the background. `buster` invalidates

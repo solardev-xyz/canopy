@@ -5,20 +5,14 @@ import { useRepo } from "../lib/queries.js";
 import { useRecentsStore } from "../stores/recents.js";
 import { shortDid } from "../lib/rad-api.js";
 import LoadingBar from "../components/LoadingBar.vue";
-import ErrorBox from "../components/ErrorBox.vue";
 import SeedButton from "../components/SeedButton.vue";
-import { useRadicleStore } from "../stores/radicle.js";
+import SeedFlow from "../components/SeedFlow.vue";
 
 const props = defineProps({ rid: { type: String, required: true } });
 const route = useRoute();
 const rid = computed(() => props.rid);
 
-const { data: repo, isPending, error, refetch } = useRepo(rid);
-const radicle = useRadicleStore();
-
-async function seedAndReload() {
-  if (await radicle.seed(rid.value)) refetch();
-}
+const { data: repo, isPending, error } = useRepo(rid);
 
 const recents = useRecentsStore();
 watch(repo, (r) => {
@@ -111,36 +105,7 @@ async function copyRid() {
 
     <div class="max-w-6xl mx-auto px-4 py-4">
       <LoadingBar v-if="isPending" variant="detail" />
-      <ErrorBox
-        v-else-if="error"
-        title="Repository not available on your node"
-        :error="error"
-      >
-        <p class="text-sm text-fg-muted mt-2">
-          Your node only serves repositories it seeds.
-        </p>
-        <div v-if="radicle.available" class="mt-4">
-          <button
-            v-if="radicle.connected"
-            @click="seedAndReload"
-            :disabled="radicle.busy"
-            class="px-4 py-2 text-sm rounded-md font-medium text-white bg-[var(--cnp-btn-primary-bg)] hover:opacity-90 cursor-pointer disabled:opacity-50"
-          >
-            {{
-              radicle.busy
-                ? "Fetching from the network…"
-                : "🌱 Seed this repository"
-            }}
-          </button>
-          <button
-            v-else
-            @click="radicle.connect()"
-            class="px-4 py-2 text-sm rounded-md border border-border-default hover:bg-canvas-subtle cursor-pointer"
-          >
-            Connect your node to seed it
-          </button>
-        </div>
-      </ErrorBox>
+      <SeedFlow v-else-if="error" :rid="rid" :error="error" />
       <RouterView v-else-if="repo" :repo="repo" />
     </div>
   </div>

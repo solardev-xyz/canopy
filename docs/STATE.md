@@ -200,8 +200,32 @@ then POST to `http://127.0.0.1:1699/bzz` with headers
 - Nothing in freedom-browser or canopy is pushed anywhere yet; Florian
   reviews locally. radicle-index-service is pushed (Coolify needs it).
 
+## Seed-to-browse honesty (WP done 2026-07-07, uncommitted → this session)
+`rad seed` exits 0 even when its fetch fails/times out; large repos
+(e.g. radicle-desktop rad:z4D5…ury) can fail from EVERY seed with
+`gix fetch error: Failed to consume the pack sent by the remote`
+(reported empirically; node retries forever, leaves storage/<rid>.tmp).
+Also: `rad sync --fetch --timeout Nsec` does NOT reliably self-terminate
+mid-pack — always hard-kill the child. The "no candidate seeds…" error
+prints on STDOUT.
+Built: freedom-browser `src/main/radicle/seed-status.js` (per-RID fetch
+state machine: policy-only seed via `--no-fetch`, bounded `rad sync`
+retry driver with hard kill, node-stdout/stderr parsing for per-seed
+results, storage/.tmp ground truth) + `radicle_getSeedStatus`
+(connection tier, pollable) + non-blocking `radicle_sync` = retry path;
+canopy `SeedFlow.vue` + store `seedProgress`/2s polling (idle → fetching
+with live seeder count/elapsed/attempts → auto-render on arrival, or
+honest failure + Try again; raw errors only behind "Technical details").
+Also fixed en route: `updateLastUsed` 60s write debounce;
+`normalizePreferredSeeds` now respects explicitly-set arrays (empty = 
+deliberate isolation — e2e fixtures were silently getting iris/rosa
+injected and reaching the real network!); exported missing
+getNodeAlias/setNodeAlias (sidebar alias IPC would have thrown).
+
 ## Open follow-ups (roughly prioritized)
-1. `PREFERRED_SEEDS` fix in radicle-manager (iris/rosa broken).
+1. `PREFERRED_SEEDS` defaults in radicle-manager still list broken
+   iris/rosa (explicit configs now respected; fresh profiles still get
+   the broken defaults — swap in seed.radicle.xyz?).
 2. Canopy release feed → one stable bzz URL across versions; move canopy
    publishing to the VPS bee (durable) instead of the scratchpad antd.
 3. Permission management UI for radicle grants (revoke/auto-approve —
@@ -211,9 +235,10 @@ then POST to `http://127.0.0.1:1699/bzz` with headers
    full-text search (pagefind-style inverted index) parked deliberately;
    COB-title search rejected by Florian for now.
 6. webview-preload provider-shim triplication (eth/swarm/radicle) —
-   parametrize; updateLastUsed sync-write debounce (swarm too); shared
-   e2e webview helpers.
+   parametrize; shared e2e webview helpers.
 7. Patch creation via window.radicle (browser-managed working copies —
    design sketch in the provider spec).
 8. iOS: friendlier no-radicle message in canopy; long-term mobile radicle
    story.
+9. Report the large-repo pack failure upstream (Radicle Zulip) — cleanly
+   reproducible on 1.9.1 from 5+ seeds.
