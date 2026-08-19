@@ -165,14 +165,21 @@ Publish pattern: `npm run build && cd dist && tar -cf x.tar .` → POST
 `Swarm-Index-Document: index.html`, `Swarm-Postage-Batch-Id`,
 `Swarm-Pin: true`, then feed update (bee-js uploadReference, topic
 `canopy-app/v1`, signer key in radicle-index-service).
+**Stamp:** the shared `radicle-index` batch `aa1b3d…` — upgraded
+2026-08-19 (+25 xBZZ topup, dilute 17→19): depth 19, 8 slots/bucket,
+utilization 2/8, ~424d TTL (expires ~2027-10-17). Bucket eviction no
+longer threatens live content; the indexer warns when TTL < 30d.
+Wallet `0x6b44…ce27` keeps ~5.5 xBZZ buffer. Full batch story in the
+swarmit-coolify README ("Canopy web app" section).
 **History:** the 2026-07-07 publishes (`2266f0…`, `9e080e…`) went through
 a scratchpad publisher antd that later died; ~half the JS chunks rotted
 off the network (lazy route views 404'd → blank tabs in canopy, cache
 made it look browser-specific). Never publish through throwaway nodes.
-**Rot warning:** the release feed's sequence chain has the same
-stamp-eviction exposure as the index feed (see radicle-index-service
-healChain); releases are rare so the chain is short, but consider
-healing `canopy-app/v1` alongside `radicle-index/v1` in the service.
+**Status: interim by design.** Florian wants a proper release pipeline
+eventually (CI-driven build+publish, feed heal for `canopy-app/v1` —
+today only `radicle-index/v1` gets the daily chain re-stamp). Until
+then: releases are manual via the pattern above, and rare enough that
+the short release-feed chain is low-risk.
 
 ## Platform notes
 - **iOS Freedom Browser** lives at `nodes/swarm-mobile-ios`
@@ -249,8 +256,10 @@ getNodeAlias/setNodeAlias (sidebar alias IPC would have thrown).
 1. `PREFERRED_SEEDS` defaults in radicle-manager still list broken
    iris/rosa (explicit configs now respected; fresh profiles still get
    the broken defaults — swap in seed.radicle.xyz?).
-2. Canopy release feed → one stable bzz URL across versions; move canopy
-   publishing to the VPS bee (durable) instead of the scratchpad antd.
+2. ~~Canopy release feed + durable VPS publishing~~ DONE 2026-08-19 (see
+   "Published canopy"). Successor: a proper release pipeline (CI
+   build+publish, `canopy-app/v1` chain heal) — Florian's explicit intent,
+   current manual flow is interim.
 3. Permission management UI for radicle grants (revoke/auto-approve —
    swarm has one; radicle grants currently only editable via JSON).
 4. Alias default: replace hardcoded 'FreedomBrowser' (onboarding field?).
