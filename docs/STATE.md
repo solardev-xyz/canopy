@@ -151,21 +151,28 @@ TS (node --experimental-strip-types), deps: bee-js 9 + ethers only.
   climbing (~full network coverage expected within days).
 - Deploy: `curl -H "Authorization: Bearer $TOKEN" "http://5.78.195.10:8000/api/v1/deploy?uuid=vyn0omw0sha2xdo8bzxdzaxe&force=false"`
 
-## Published canopy (content-addressed, newest last)
-`bzz://2266f07caea962a21eeb81bd666dfb567e5cd8fd0efaa986cb02aa727bda576c`
-`bzz://9e080ecb1257886a2e22505de4a6db50862a312a0d334e6cc08f469261eca333`
-(2026-07-07: seed-status UX, pagination/search, account menu, top-bar
-unified search)
-Published via a **pre-existing publisher antd on `127.0.0.1:1699`**
-(another session's scratchpad process — will not survive reboot; its
-stamps/data at
-`/private/tmp/claude-501/…/14357b0a-…/scratchpad/publisher-node/`).
-Publish pattern: `cd canopy && npm run build && cd dist && tar -cf x.tar .`
-then POST to `http://127.0.0.1:1699/bzz` with headers
-`Swarm-Collection: true`, `Swarm-Index-Document: index.html`,
-`Swarm-Postage-Batch-Id: <first stamp>`, `Swarm-Pin: true`.
-**Next step here**: a canopy release *feed* for one stable URL
-(swarm_createFeed pattern), and a durable publish path (VPS bee).
+## Published canopy
+**Release feed (stable URL — point canopy.gwei here):**
+`bzz://52d50de31ed3ece3bd42257af4d8e0deebee384abc6d42db28d1f2f325e0ca8a`
+(topic `canopy-app/v1`, owner = the index feed signer 0xc135…14cF)
+Current snapshot (2026-08-19, includes native-integration updates):
+`bzz://25cc465494c70e026680fb5f5d3a8e289fdcf0dfcaecdd7af2715cfe77c317b5`
+Published from the **VPS bee** (tunnel `ssh -f -N -L 11633:10.0.1.3:1633
+root@5.78.195.10` — bee container IP moved from 10.0.1.8; resolve via
+docker network alias `bee`), batch `aa1b3d…`, `Swarm-Pin: true`.
+Publish pattern: `npm run build && cd dist && tar -cf x.tar .` → POST
+`http://127.0.0.1:11633/bzz` with `Swarm-Collection: true`,
+`Swarm-Index-Document: index.html`, `Swarm-Postage-Batch-Id`,
+`Swarm-Pin: true`, then feed update (bee-js uploadReference, topic
+`canopy-app/v1`, signer key in radicle-index-service).
+**History:** the 2026-07-07 publishes (`2266f0…`, `9e080e…`) went through
+a scratchpad publisher antd that later died; ~half the JS chunks rotted
+off the network (lazy route views 404'd → blank tabs in canopy, cache
+made it look browser-specific). Never publish through throwaway nodes.
+**Rot warning:** the release feed's sequence chain has the same
+stamp-eviction exposure as the index feed (see radicle-index-service
+healChain); releases are rare so the chain is short, but consider
+healing `canopy-app/v1` alongside `radicle-index/v1` in the service.
 
 ## Platform notes
 - **iOS Freedom Browser** lives at `nodes/swarm-mobile-ios`
