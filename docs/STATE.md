@@ -106,12 +106,22 @@ TS (node --experimental-strip-types), deps: bee-js 9 + ethers only.
   per-repo change signal) → extract stored repos **incrementally**
   (record cache `/data/records.json`; re-extract only when refs
   announcement newer or 24h full-sweep due; seeder counts refreshed on
-  cached records) → snapshot (repos.json + users.json + signed
-  manifest.json, EIP-191) → **publish only when shard bytes changed** →
-  THEN crawl new repos (bounded: `FETCH_PER_CYCLE`, wall-clock
+  cached records; evicted repos fold in from the cache while gossip still
+  knows them) → snapshot (repos.json + users.json + signed manifest.json,
+  EIP-191) → **publish only when shard bytes changed** → **evict**
+  (2026-08-19: storage is a working set — snapshotted repos are unseeded
+  in chunks of 100 + rm'd from storage; stale `storage/*.tmp` pruned;
+  kill switch `EVICT_AFTER_EXTRACT=false`; rad 1.9.1 has NO
+  storage-removal command — `rad clean` only drops remotes, so it's
+  `rad unseed` + direct `rm -rf storage/<z-part>`, verified safe against
+  a live node) → THEN crawl (priority: evicted repos whose refs moved →
+  never-indexed, most-seeded first → records older than `REFRESH_DAYS`
+  default 7; bounded: `FETCH_PER_CYCLE`, wall-clock
   `FETCH_BUDGET_MINUTES` default 10, 45s per-seed timeout, exponential
   per-RID backoff, disk floor). Publish-first ordering is deliberate:
-  freshness beats breadth.
+  freshness beats breadth. Context: the VPS hit `DISK_FLOOR_GB` at 49 GB
+  of seeded repos (~4.8k indexed of 15.2k known) and the crawl froze —
+  eviction unblocked it.
 - **Spec**: `docs/index-protocol.md` (`radicle-index/1`; readers iterate
   `shards.*`; additive evolution).
 - **Docker**: node:22-alpine + radicle musl binaries from
