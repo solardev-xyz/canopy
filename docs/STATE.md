@@ -111,7 +111,10 @@ TS (node --experimental-strip-types), deps: bee-js 9 + ethers only.
   EIP-191) → **publish only when shard bytes changed** → **evict**
   (2026-08-19: storage is a working set — snapshotted repos are unseeded
   in chunks of 100 + rm'd from storage; stale `storage/*.tmp` pruned;
-  kill switch `EVICT_AFTER_EXTRACT=false`; rad 1.9.1 has NO
+  kill switch `EVICT_AFTER_EXTRACT=false`; **bounded `EVICT_PER_CYCLE`
+  default 300 + 2s chunk pauses — the unbounded first rollout deleted
+  49 GB in one storm and starved the VPS for ~10 min (sshd unreachable,
+  load 127); ping still answered, recovered without reboot**; rad 1.9.1 has NO
   storage-removal command — `rad clean` only drops remotes, so it's
   `rad unseed` + direct `rm -rf storage/<z-part>`, verified safe against
   a live node) → THEN crawl (priority: evicted repos whose refs moved →
