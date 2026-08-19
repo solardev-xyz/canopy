@@ -1,3 +1,8 @@
+// @vitest-environment node
+// Data-layer tests run in the node environment: the jsdom env swaps in
+// jsdom's AbortSignal, which undici's fetch rejects — making the dev-node
+// probe below fail unconditionally and silently skip every integration
+// test while reporting green.
 import { describe, test, expect, beforeAll } from "vitest";
 import { configureRadApi } from "./rad-api.js";
 import {
