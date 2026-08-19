@@ -1,14 +1,18 @@
 /**
- * Seed-progress tracking in the radicle store: seeding polls
- * radicle_getSeedStatus until the fetch lands or fails, retryFetch
- * restarts a failed fetch, unseed clears tracking.
+ * Seed-progress tracking in the radicle store: seeding consumes pushed
+ * seedStatus events, retryFetch restarts a failed fetch, and a one-shot
+ * radicle_getSeedStatus snapshot restores state after reload.
  */
-import { beforeEach, afterEach, describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 
 // Fake window.radicle, scripted per test. Must exist before the store
 // module evaluates hasProvider().
-const provider = { request: vi.fn() };
+const providerListeners = new Map();
+const provider = {
+  request: vi.fn(),
+  on: vi.fn((event, handler) => providerListeners.set(event, handler)),
+};
 window.radicle = provider;
 
 const { useRadicleStore } = await import("./radicle.js");
@@ -28,106 +32,103 @@ const fetchingStatus = (extra = {}) => ({
   ...extra,
 });
 
-let statusScript; // queue of statuses returned by radicle_getSeedStatus
+let statusSnapshot;
 
 beforeEach(() => {
   setActivePinia(createPinia());
-  vi.useFakeTimers();
-  statusScript = [];
+  statusSnapshot = null;
+  providerListeners.clear();
   provider.request.mockClear();
+  provider.on.mockClear();
   provider.request.mockImplementation(async ({ method }) => {
     switch (method) {
       case "radicle_seed":
         return { rid: RID, seeded: true, status: fetchingStatus() };
       case "radicle_sync":
-        return { rid: RID, status: fetchingStatus() };
+        return {
+          rid: RID,
+          status: fetchingStatus({ attemptCount: 2, startedAt: 2 }),
+        };
       case "radicle_unseed":
         return { rid: RID, seeded: false };
       case "radicle_getSeedStatus":
-        return statusScript.length > 1 ? statusScript.shift() : statusScript[0];
+        return statusSnapshot;
       default:
         throw new Error(`unexpected method ${method}`);
     }
   });
 });
 
-afterEach(() => {
-  vi.useRealTimers();
-});
-
-async function poll(times = 1) {
-  for (let i = 0; i < times; i++) await vi.advanceTimersByTimeAsync(2000);
+function emitSeedStatus(status) {
+  providerListeners.get("seedStatus")?.(status);
 }
 
 describe("seed progress tracking", () => {
-  test("seed() records initial status and polls until fetched", async () => {
+  test("seed() records initial status and consumes events until fetched", async () => {
     const store = useRadicleStore();
-    statusScript = [
-      fetchingStatus({ attemptCount: 1 }),
-      fetchingStatus({ state: "fetched", inStorage: true }),
-    ];
 
     await store.seed(RID);
     expect(store.seedProgress[RID].state).toBe("fetching");
     expect(store.isSeeded(RID)).toBe(true);
 
-    await poll();
+    emitSeedStatus(fetchingStatus({ attemptCount: 1 }));
     expect(store.seedProgress[RID].attemptCount).toBe(1);
 
-    await poll();
+    emitSeedStatus(fetchingStatus({ state: "fetched", inStorage: true }));
     expect(store.seedProgress[RID].state).toBe("fetched");
-
-    // terminal state → polling stopped
-    const calls = provider.request.mock.calls.length;
-    await poll(3);
-    expect(provider.request.mock.calls.length).toBe(calls);
+    expect(provider.request).not.toHaveBeenCalledWith(
+      expect.objectContaining({ method: "radicle_getSeedStatus" }),
+    );
   });
 
-  test("polling stops on failed; retryFetch restarts it", async () => {
+  test("failed progress can be retried and resumed through events", async () => {
     const store = useRadicleStore();
-    statusScript = [
-      fetchingStatus({ state: "failed", lastError: "pack error" }),
-    ];
 
     await store.seed(RID);
-    await poll();
+    emitSeedStatus(fetchingStatus({ state: "failed", lastError: "pack error" }));
     expect(store.seedProgress[RID].state).toBe("failed");
     expect(store.seedProgress[RID].lastError).toBe("pack error");
 
-    statusScript = [fetchingStatus({ state: "fetched", inStorage: true })];
     await store.retryFetch(RID);
     expect(store.seedProgress[RID].state).toBe("fetching");
-    await poll();
+    emitSeedStatus(
+      fetchingStatus({
+        state: "fetched",
+        inStorage: true,
+        attemptCount: 2,
+        startedAt: 2,
+      }),
+    );
     expect(store.seedProgress[RID].state).toBe("fetched");
   });
 
-  test("unseed clears progress and stops polling", async () => {
+  test("unseed clears progress and ignores queued events", async () => {
     const store = useRadicleStore();
-    statusScript = [fetchingStatus()];
 
     await store.seed(RID);
-    await poll();
+    emitSeedStatus(fetchingStatus({ attemptCount: 1 }));
     await store.unseed(RID);
     expect(store.seedProgress[RID]).toBeUndefined();
     expect(store.isSeeded(RID)).toBe(false);
 
-    const calls = provider.request.mock.calls.length;
-    await poll(3);
-    expect(provider.request.mock.calls.length).toBe(calls);
+    emitSeedStatus(fetchingStatus({ state: "fetched", inStorage: true }));
+    expect(store.seedProgress[RID]).toBeUndefined();
   });
 
-  test("resumeTracking picks up an in-flight fetch", async () => {
+  test("resumeTracking takes one snapshot then follows pushed events", async () => {
     const store = useRadicleStore();
     store.connected = true;
-    statusScript = [
-      fetchingStatus(),
-      fetchingStatus({ state: "fetched", inStorage: true }),
-    ];
+    statusSnapshot = fetchingStatus();
 
     await store.resumeTracking(RID);
     expect(store.seedProgress[RID].state).toBe("fetching");
-    await poll();
+    emitSeedStatus(fetchingStatus({ state: "fetched", inStorage: true }));
     expect(store.seedProgress[RID].state).toBe("fetched");
+    expect(
+      provider.request.mock.calls.filter(
+        ([request]) => request.method === "radicle_getSeedStatus",
+      ),
+    ).toHaveLength(1);
   });
 
   test("resumeTracking is a no-op when not connected", async () => {

@@ -9,7 +9,7 @@ import { useNetworkIndex } from "../lib/index-queries.js";
  * progress, automatic render when the repo lands, and an honest failure
  * state with a retry — never a raw node error as the primary message.
  *
- * Purely presentational: the store owns polling and refreshes the repo's
+ * Purely presentational: the store owns provider events and refreshes the repo's
  * queries when the fetch lands, so this view updates itself away.
  */
 const props = defineProps({

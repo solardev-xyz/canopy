@@ -52,11 +52,12 @@ window.radicle.request({ method: string, params?: object }): Promise<any>
 plus convenience wrappers (one per method below), and EIP-1193-style events:
 
 ```javascript
-window.radicle.on('connect' | 'disconnect', handler);
+window.radicle.on('connect' | 'disconnect' | 'seedStatus', handler);
 window.radicle.removeListener(event, handler);
 ```
 
-`connect` fires on access grant, `disconnect` on revocation.
+`connect` fires on access grant, `disconnect` on revocation, and `seedStatus`
+streams replication transitions for seed/sync actions started by this origin.
 
 ### Errors
 
@@ -113,7 +114,7 @@ Emits the `disconnect` provider event.
 
 ```javascript
 {
-  specVersion: '0.1',
+  specVersion: '0.2',
   canUseNode: boolean,        // connected AND node running
   reason: string | null,      // 'not-connected' | 'integration-disabled' |
                               // 'node-stopped' | 'node-not-ready'
@@ -140,14 +141,17 @@ user, not data the origin could compute itself.
 fetch, resolving immediately with `{ rid, seeded: true, status }` where
 `status` is the same shape `radicle_getSeedStatus` returns. Policy and
 replication are deliberately separate: the fetch can take seconds, fail
-per-seed, or never complete, so its outcome is polled, not awaited. This
+per-seed, or never complete, so its outcome is reported asynchronously rather
+than awaited. Subscribe to `seedStatus` before starting the action; use
+`radicle_getSeedStatus` to restore the latest snapshot after a page reload. This
 is the gateway action for browsing repos the node doesn't have yet.
 `unseed` removes the policy (and cancels any fetch in flight), resolving
 `{ rid, seeded: false }`.
 
 ### `radicle_getSeedStatus { rid }` (connection tier)
 
-Honest replication status for a repo; cheap and safe to poll (~2s).
+Honest replication-status snapshot for a repo. Live transitions are pushed as
+`seedStatus` events whose payload has this same shape.
 Resolves:
 
 ```
@@ -173,7 +177,7 @@ retrying in the background on refs announcements.
 
 (Re)start the background fetch for an already-seeded repo — the retry
 path after `state: 'failed'`, without a second consent prompt. Resolves
-immediately with `{ rid, status }`; poll `radicle_getSeedStatus`.
+immediately with `{ rid, status }`; follow `seedStatus` events for progress.
 
 ### `radicle_getIdentity` → `{ did, nid, alias }` (signing tier)
 

@@ -3,15 +3,13 @@ import { ref } from "vue";
 import { hasProvider, radicleRequest, USER_REJECTED } from "../lib/provider.js";
 import { invalidateRepoQueries, queryClient } from "../lib/query-client.js";
 
-/** How often to poll radicle_getSeedStatus while a fetch is in flight. */
-const SEED_POLL_MS = 2000;
-
 /**
  * Connection + node state for the window.radicle provider.
  * `available` — running inside Freedom Browser with the provider injected.
  * `connected` — this origin holds a connection grant.
  * `seedProgress` — per-RID replication status (seeding a repo only writes
- * a policy; the network fetch is asynchronous and polled honestly).
+ * a policy; the network fetch is asynchronous and reported through provider
+ * events, with a one-shot status request used to recover after reload).
  */
 export const useRadicleStore = defineStore("radicle", () => {
   const available = ref(hasProvider());
@@ -23,8 +21,37 @@ export const useRadicleStore = defineStore("radicle", () => {
   const busy = ref(false);
   const seedProgress = ref({});
 
-  // rid -> setInterval handle; deliberately non-reactive
-  const pollers = new Map();
+  let providerEventsAttached = false;
+  const trackedRids = new Set();
+
+  function applySeedStatus(status) {
+    if (!status?.rid) return;
+    const previous = seedProgress.value[status.rid];
+    if (
+      status.state === "fetching" &&
+      previous?.state !== "fetching" &&
+      previous?.startedAt === status.startedAt
+    ) {
+      return;
+    }
+    seedProgress.value[status.rid] = status;
+    if (status.state === "fetched" && previous?.state !== "fetched") {
+      landed(status.rid);
+    }
+    if (status.state !== "fetching") trackedRids.delete(status.rid);
+  }
+
+  function handleSeedStatus(status) {
+    if (trackedRids.has(status?.rid)) applySeedStatus(status);
+  }
+
+  function attachProviderEvents() {
+    if (providerEventsAttached || typeof window.radicle?.on !== "function") {
+      return;
+    }
+    window.radicle.on("seedStatus", handleSeedStatus);
+    providerEventsAttached = true;
+  }
 
   async function init() {
     // The provider is injected around DOMContentLoaded; a module-script SPA
@@ -34,6 +61,7 @@ export const useRadicleStore = defineStore("radicle", () => {
     }
     available.value = hasProvider();
     if (!available.value) return;
+    attachProviderEvents();
     try {
       capabilities.value = await radicleRequest("radicle_getCapabilities");
       // 'not-connected' means never granted; anything else implies a grant.
@@ -71,8 +99,7 @@ export const useRadicleStore = defineStore("radicle", () => {
       alias.value = null;
       did.value = null;
       seededRids.value = new Set();
-      pollers.forEach((timer) => clearTimeout(timer));
-      pollers.clear();
+      trackedRids.clear();
       seedProgress.value = {};
     }
   }
@@ -110,35 +137,8 @@ export const useRadicleStore = defineStore("radicle", () => {
     try {
       return await radicleRequest("radicle_getSeedStatus", { rid });
     } catch {
-      return null; // node down mid-poll — keep the last known status
+      return null; // node down — keep the last known status
     }
-  }
-
-  /**
-   * Poll fetch progress until it lands or fails. Idempotent per rid.
-   * A setTimeout chain (not setInterval) so a slow round-trip can never
-   * overlap the next poll. When the repo lands, the store — not whichever
-   * view happens to be mounted — refreshes that repo's queries.
-   */
-  function trackFetch(rid) {
-    if (pollers.has(rid)) return;
-    const tick = async () => {
-      const status = await fetchSeedStatus(rid);
-      if (!status) return stopTracking(rid);
-      seedProgress.value[rid] = status;
-      if (status.state === "fetched") landed(rid);
-      if (status.state === "fetching" && pollers.has(rid)) {
-        pollers.set(rid, setTimeout(tick, SEED_POLL_MS));
-      } else {
-        stopTracking(rid);
-      }
-    };
-    pollers.set(rid, setTimeout(tick, SEED_POLL_MS));
-  }
-
-  function stopTracking(rid) {
-    clearTimeout(pollers.get(rid));
-    pollers.delete(rid);
   }
 
   /** A repo arrived on the node — refresh everything that lists it. */
@@ -150,9 +150,7 @@ export const useRadicleStore = defineStore("radicle", () => {
   /** Record a fresh action status and follow the fetch to its outcome. */
   function beginTracking(rid, status) {
     if (!status) return;
-    seedProgress.value[rid] = status;
-    if (status.state === "fetching") trackFetch(rid);
-    else if (status.state === "fetched") landed(rid);
+    applySeedStatus({ ...status, rid });
   }
 
   /**
@@ -161,21 +159,26 @@ export const useRadicleStore = defineStore("radicle", () => {
    * an already-fetched repo just gets its status recorded, no refetches.
    */
   async function resumeTracking(rid) {
-    if (!connected.value || pollers.has(rid)) return;
+    if (!connected.value) return;
+    trackedRids.add(rid);
     const status = await fetchSeedStatus(rid);
-    if (!status) return;
-    seedProgress.value[rid] = status;
-    if (status.state === "fetching") trackFetch(rid);
+    if (!status) {
+      trackedRids.delete(rid);
+      return;
+    }
+    applySeedStatus(status);
   }
 
   async function seed(rid) {
     busy.value = true;
+    trackedRids.add(rid);
     try {
       const result = await radicleRequest("radicle_seed", { rid });
       seededRids.value = new Set([...seededRids.value, rid]);
       beginTracking(rid, result.status);
       return true;
     } catch (err) {
+      trackedRids.delete(rid);
       if (err.code === USER_REJECTED) return false;
       throw err;
     } finally {
@@ -185,8 +188,14 @@ export const useRadicleStore = defineStore("radicle", () => {
 
   /** Restart the network fetch after a failure — no new consent needed. */
   async function retryFetch(rid) {
-    const result = await radicleRequest("radicle_sync", { rid });
-    beginTracking(rid, result.status);
+    trackedRids.add(rid);
+    try {
+      const result = await radicleRequest("radicle_sync", { rid });
+      beginTracking(rid, result.status);
+    } catch (err) {
+      trackedRids.delete(rid);
+      throw err;
+    }
   }
 
   async function unseed(rid) {
@@ -196,7 +205,7 @@ export const useRadicleStore = defineStore("radicle", () => {
       const next = new Set(seededRids.value);
       next.delete(rid);
       seededRids.value = next;
-      stopTracking(rid);
+      trackedRids.delete(rid);
       delete seedProgress.value[rid];
       queryClient.invalidateQueries({ queryKey: ["seeded-repos"] });
       return true;
@@ -204,6 +213,8 @@ export const useRadicleStore = defineStore("radicle", () => {
       busy.value = false;
     }
   }
+
+  attachProviderEvents();
 
   return {
     available,

@@ -242,8 +242,9 @@ Built: freedom-browser `src/main/radicle/seed-status.js` (per-RID fetch
 state machine: policy-only seed via `--no-fetch`, bounded `rad sync`
 retry driver with hard kill, node-stdout/stderr parsing for per-seed
 results, storage/.tmp ground truth) + `radicle_getSeedStatus`
-(connection tier, pollable) + non-blocking `radicle_sync` = retry path;
-canopy `SeedFlow.vue` + store `seedProgress`/2s polling (idle → fetching
+(connection-tier recovery snapshot) + pushed `seedStatus` events +
+non-blocking `radicle_sync` = retry path; canopy `SeedFlow.vue` + store
+`seedProgress` event tracking (idle → fetching
 with live seeder count/elapsed/attempts → auto-render on arrival, or
 honest failure + Try again; raw errors only behind "Technical details").
 Also fixed en route: `updateLastUsed` 60s write debounce;
