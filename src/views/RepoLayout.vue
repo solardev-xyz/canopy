@@ -1,7 +1,7 @@
 <script setup>
 import { computed, watch } from "vue";
 import { useRoute } from "vue-router";
-import { useRepo } from "../lib/queries.js";
+import { useRepo, useRepoStats } from "../lib/queries.js";
 import { useRecentsStore } from "../stores/recents.js";
 import { shortDid } from "../lib/rad-api.js";
 import LoadingBar from "../components/LoadingBar.vue";
@@ -13,6 +13,8 @@ const route = useRoute();
 const rid = computed(() => props.rid);
 
 const { data: repo, isPending, error } = useRepo(rid);
+const head = computed(() => repo.value?.head ?? null);
+const { data: repoStats } = useRepoStats(rid, head);
 
 const recents = useRecentsStore();
 watch(repo, (r) => {
@@ -40,6 +42,8 @@ const tabs = computed(() => [
 const activeTab = computed(
   () => tabs.value.find((t) => t.active.includes(route.name))?.name ?? "code",
 );
+const countLabel = (count, singular) =>
+  `${count} ${singular}${count === 1 ? "" : "s"}`;
 
 async function copyRid() {
   try {
@@ -82,6 +86,11 @@ async function copyRid() {
         </div>
         <p v-if="repo?.description" class="text-fg-muted text-sm mb-3">
           {{ repo.description }}
+        </p>
+        <p v-if="repoStats" class="text-fg-muted text-xs mb-3 flex gap-3">
+          <span>{{ countLabel(repoStats.commits, "commit") }}</span>
+          <span>{{ countLabel(repoStats.branches, "branch") }}</span>
+          <span>{{ countLabel(repoStats.contributors, "contributor") }}</span>
         </p>
 
         <nav class="flex gap-1 -mb-px">

@@ -25,10 +25,10 @@ consent and origin-scoped permissions.
 Unlike `window.swarm`, this provider deliberately has **no read methods**
 for repository data. Freedom Browser resolves the `rad:` URL scheme
 directly: any page can `fetch('rad:<rid>/tree/<sha>/…')` and receive JSON
-from the user's local `radicle-httpd` (repo-scoped, `GET`/`HEAD` only,
-rate-limitable, CORS-open — see `src/main/radicle/rad-protocol.js`). Public
-repo data needs no consent: it is world-readable P2P content, and the same
-bytes are obtainable from any seed.
+from the browser's in-process Radicle node (repo-scoped, `GET`/`HEAD` only;
+see Freedom Browser's `src/main/radicle-api-protocol.js`). Public repo data
+needs no consent: it is world-readable P2P content, and the same bytes are
+obtainable from any seed.
 
 The provider exists for everything that is **not** a public read:
 
@@ -126,9 +126,11 @@ Emits the `disconnect` provider event.
 Coarse node state for UI (peer count, running/stopped). `nid` is only
 included once the signing grant exists (the NID is identifying).
 
-### `radicle_listSeededRepos` → `[{ rid, name, description }]` (connection tier)
+### `radicle_listSeededRepos` → `[{ rid, name?, description? }]` (connection tier)
 
-The repos the user's node seeds. Unlike `swarm_listFeeds` this is NOT
+The repos the user's node is configured to seed, including an allow policy
+whose first fetch has not succeeded yet (metadata is absent until it lands).
+Unlike `swarm_listFeeds` this is NOT
 permission-free: the seeded-repo list is private information about the
 user, not data the origin could compute itself.
 
@@ -151,11 +153,12 @@ Resolves:
 ```
 {
   rid,
-  state: 'fetched' | 'fetching' | 'failed' | 'idle',
+  state: 'fetched' | 'fetching' | 'failed' | 'cancelled' | 'idle',
   inStorage: boolean,       // ground truth: repo is served locally
   seedersKnown: number|null, // network seeders discovered for the fetch
   attemptCount: number,
   recentAttempts: [{ nid, ok, error?, at }],  // last 5 per-seed results
+  progress: { phase, candidates?, nid?, index?, total?, reason? } | null,
   lastError: string|null,
   startedAt: number|null,
   finishedAt: number|null
@@ -195,21 +198,15 @@ The user's Radicle identity. Bootstrap path for the signing grant, like
 
 ## Backend mapping (implementation note)
 
-Writes execute the bundled `rad` CLI against the node's `RAD_HOME`
-(verified non-interactive on rad 1.9.1):
+Freedom Browser delegates node lifecycle, repository reads, network fetches,
+and COB writes to the native `libradicle.node` addon. The addon embeds the
+Radicle node and accesses its Git and COB storage in-process; no `rad` CLI,
+`radicle-httpd`, or other child process is used on this path.
 
-| Method           | Command                                                                                                                                  |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| createIssue      | `rad issue open --repo <rid> -t <title> -d <desc> [--labels …]` (verbose — `-q` prints nothing for `open`; the id is parsed from output) |
-| commentIssue     | `rad issue comment <id> --repo <rid> -m <body> -q`                                                                                       |
-| editIssueState   | `rad issue state <id> --repo <rid> --open/--closed/--solved`                                                                             |
-| commentPatch     | `rad patch comment <rev> --repo <rid> -m <body> -q` (only the long `--repo` form exists here)                                            |
-| seed/unseed/sync | `rad seed/unseed/sync <rid>`                                                                                                             |
-
-All COB writes work storage-only via `--repo` — no working copy needed.
-Writes announce to the network by default (that is the point); the node
-must be running. Announce failures surface as `-32603` with
-`data.reason = 'announce_failed'` but the local write persists.
+Writes announce to the network by default (that is the point); the node must
+be running. Announce failures surface as `-32603` with
+`data.reason = 'announce_failed'`, while the already-created local write may
+still persist.
 
 ## Design decisions (v1)
 
@@ -225,8 +222,9 @@ must be running. Announce failures surface as `-32603` with
   `radicle_commitAndPush({ rid, changes[] })`, but v1 ships COB writes
   only (issues + patch comments cover the collaboration loop around
   existing patches).
-- **Private repos** are invisible to the `rad:` URL scheme (httpd does
-  not serve them). v1 does not expose them through the provider either.
+- **Private repos** are invisible to the public `rad:` URL scheme (the
+  browser does not serve them). v1 does not expose them through the provider
+  either.
 - **No repo creation** (`rad init`) in v1 — it needs a working copy and
   raises squatting/spam questions; revisit with patch creation.
 

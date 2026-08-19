@@ -12,8 +12,8 @@ import SeedButton from "../components/SeedButton.vue";
 
 /**
  * The repositories the user's node seeds — the "your account's repos"
- * view behind the account menu. Every entry is served locally, so this
- * doubles as seeding management (the Seed button unseeds).
+ * view behind the account menu. Entries include policies still waiting for
+ * their first successful fetch, and the Seed button manages both cases.
  */
 const radicle = useRadicleStore();
 
@@ -36,7 +36,8 @@ const list = usePagedList(
   <div class="max-w-4xl mx-auto px-4 py-8">
     <h1 class="text-2xl font-semibold mb-1">Your repositories</h1>
     <p class="text-sm text-fg-muted mb-6">
-      Repositories your node seeds — stored locally, served to the network.
+      Repositories your node is configured to seed. They are served to the
+      network after the first successful fetch.
     </p>
 
     <div
@@ -72,10 +73,13 @@ const list = usePagedList(
               :to="{ name: 'code', params: { rid: repo.rid } }"
               class="font-semibold text-accent hover:underline block truncate"
             >
-              📦 {{ repo.name }}
+              📦 {{ repo.name || repo.rid }}
             </RouterLink>
             <div class="text-sm text-fg-muted truncate">
-              {{ repo.description || repo.rid }}
+              {{
+                repo.description ||
+                (repo.name ? repo.rid : "Awaiting first successful fetch")
+              }}
             </div>
           </div>
           <SeedButton :rid="repo.rid" />

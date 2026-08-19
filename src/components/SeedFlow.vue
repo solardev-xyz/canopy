@@ -84,6 +84,27 @@ const failedAttempts = computed(
     status.value?.recentAttempts?.filter((attempt) => !attempt.ok).length ?? 0,
 );
 
+const progress = computed(() => status.value?.progress ?? null);
+const progressHeadline = computed(() => {
+  switch (progress.value?.phase) {
+    case "starting":
+    case "resolving":
+      return "Finding seeds…";
+    case "connecting":
+      return "Connecting to a seed…";
+    case "fetching":
+      return "Downloading repository…";
+    case "peer-failed":
+      return "Trying another seed…";
+    default:
+      return "Fetching from the network…";
+  }
+});
+const progressPeer = computed(() => {
+  const { index, total } = progress.value ?? {};
+  return index && total ? `Seed ${index} of ${total}.` : null;
+});
+
 // Raw node/query errors belong behind a toggle, never as the headline.
 const technicalDetail = computed(() => {
   if (state.value === "failed") return status.value?.lastError ?? null;
@@ -99,8 +120,9 @@ const technicalDetail = computed(() => {
     <!-- fetching -->
     <template v-if="state === 'fetching'">
       <div class="text-3xl mb-2 animate-pulse" aria-hidden="true">🌱</div>
-      <div class="text-lg font-semibold mb-1">Fetching from the network…</div>
+      <div class="text-lg font-semibold mb-1">{{ progressHeadline }}</div>
       <p class="text-sm text-fg-muted">
+        <template v-if="progressPeer">{{ progressPeer }} </template>
         <template v-if="seeders !== null">
           {{ plural(seeders, "seed") }} known for this repository.
         </template>
@@ -139,7 +161,7 @@ const technicalDetail = computed(() => {
           All fetch attempts failed<template v-if="failedAttempts > 0">
             ({{ plural(failedAttempts, "seed") }} tried)</template
           >. This can happen with very large repositories or unreliable seeds.
-          Your node keeps retrying in the background.
+          You can retry when another seed may be reachable.
         </template>
       </p>
       <button

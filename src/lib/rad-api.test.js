@@ -14,6 +14,7 @@ import {
   getIssue,
   getPatches,
   getRemotes,
+  getRepoStats,
   RadApiError,
 } from "./rad-api.js";
 
@@ -183,6 +184,14 @@ describe.runIf(nodeUp)("integration against local httpd", () => {
     const remotes = await getRemotes(HEARTWOOD);
     expect(remotes.length).toBeGreaterThan(0);
     expect(remotes[0]).toHaveProperty("heads");
+  });
+
+  test("getRepoStats returns revision-scoped history counts", async () => {
+    const { head } = await getRepo(HEARTWOOD);
+    const stats = await getRepoStats(HEARTWOOD, head);
+    expect(stats.commits).toBeGreaterThan(0);
+    expect(stats.branches).toBeGreaterThan(0);
+    expect(stats.contributors).toBeGreaterThan(0);
   });
 
   test("unknown repo rejects with RadApiError", async () => {

@@ -3,11 +3,11 @@
  *
  * Transport:
  *  - In Freedom Browser, `fetch('rad://<rid>/…')` is resolved by the
- *    browser's rad: protocol handler against the local radicle-httpd.
+ *    browser's rad: protocol handler against the embedded node's storage.
  *  - In plain-browser dev, the same paths go through the vite proxy
  *    (`/rad/rad:<rid>/…` → local dev httpd, see vite.config.js).
- *  - In node tests, `configureRadApi({ base })` points requests straight
- *    at a local httpd.
+ *  - In node tests, `configureRadApi({ base })` can point requests at a
+ *    compatible local HTTP API.
  *
  * No hosted gateways, ever.
  */
@@ -144,6 +144,10 @@ export function getReadme(rid, sha) {
 
 export function getRemotes(rid) {
   return radFetch(rid, "remotes");
+}
+
+export function getRepoStats(rid, sha) {
+  return radFetch(rid, `stats/tree/${sha}`);
 }
 
 // ---------------------------------------------------------------------------

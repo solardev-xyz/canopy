@@ -41,6 +41,15 @@ export function useReadme(rid, sha) {
   });
 }
 
+export function useRepoStats(rid, sha) {
+  return useQuery({
+    queryKey: ["repo-stats", rid, sha],
+    queryFn: () => api.getRepoStats(unref(rid), unref(sha)),
+    enabled: enabled(rid, sha),
+    retry: false,
+  });
+}
+
 export function useCommits(rid, parent, page = 0, perPage = 30) {
   return useQuery({
     queryKey: ["commits", rid, parent, page, perPage],
