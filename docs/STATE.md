@@ -68,7 +68,7 @@ Core principles (Florian's, non-negotiable):
   (`z6MksmpU5b1dS7oaqF2bHXhQi1DWy2hB7Mh9CuN7y1DN6QSz@seed.radicle.xyz:8776`)
   works and is what the dev/e2e/indexer nodes use.
 
-### 2. canopy — `/Users/florian/Git/freedom-dev/canopy`, branch main (LOCAL ONLY)
+### 2. canopy — `/Users/florian/Git/freedom-dev/canopy`, branch main (PUSHED to github.com/solardev-xyz/canopy since 2026-08-19)
 ~13 commits. Vue 3 + Vite + Tailwind 4 + Pinia + TanStack vue-query
 (+ IndexedDB persistence via `query-persist-client-core` + `idb-keyval`,
 buster `v1`). Prettier default (double quotes).
@@ -135,6 +135,11 @@ TS (node --experimental-strip-types), deps: bee-js 9 + ethers only.
 
 ### 4. Ops — swarmit-coolify README (committed) has the full playbook + secrets
 - **VPS**: Hetzner 5.78.195.10 (Coolify; API token in that README).
+  4 GB RAM; **4 GB swapfile added 2026-08-19** (fstab-persisted,
+  swappiness 10) after radicle-node hit 1.37 GB RSS and the OOM-killer
+  froze userspace for minutes (ping fine, sshd dead — second stall of
+  the day after the eviction-storm one). Memory is the box's tightest
+  resource; watch it before adding services.
 - **Indexer app**: uuid `vyn0omw0sha2xdo8bzxdzaxe`, deploys from GitHub
   main. Envs: `FETCH_PER_CYCLE=150`, `INTERVAL_MINUTES=20`,
   `DISK_FLOOR_GB=15`, `BEE_API_URL=http://bee:1633`,
@@ -155,8 +160,13 @@ TS (node --experimental-strip-types), deps: bee-js 9 + ethers only.
 **Release feed (stable URL — point canopy.gwei here):**
 `bzz://52d50de31ed3ece3bd42257af4d8e0deebee384abc6d42db28d1f2f325e0ca8a`
 (topic `canopy-app/v1`, owner = the index feed signer 0xc135…14cF)
-Current snapshot (2026-08-19, includes native-integration updates):
-`bzz://25cc465494c70e026680fb5f5d3a8e289fdcf0dfcaecdd7af2715cfe77c317b5`
+Current snapshot (2026-08-19 evening, commit d8bbb2a — event-driven
+seedStatus tracking, spec 0.2):
+`bzz://831654c218a2e5211ad678f38f9255197a0bf37da1f04c7b1d44e865cdcce01a`
+Previous: `bzz://25cc4654…c317b5` (same day, polling-era store).
+Note: spec-0.2 builds need a browser that emits `seedStatus` events;
+in older browsers seed progress freezes at its initial state (repo
+browsing unaffected).
 Published from the **VPS bee** (tunnel `ssh -f -N -L 11633:10.0.1.3:1633
 root@5.78.195.10` — bee container IP moved from 10.0.1.8; resolve via
 docker network alias `bee`), batch `aa1b3d…`, `Swarm-Pin: true`.
